@@ -1,9 +1,12 @@
 #include "Callback.h"
 #include "SerialReceiver.h"
 #include "AlternateReceiver.h"
+#include "VictronReceiver.h"
 
 SerialReceiver *receiver=NULL;
 AlternateReceiver *alternateReceiver=NULL;
+VictronReceiver *victron=NULL;
+long lastout=0;
 
 const char DELIMTER[] = " ";
 void handleSerialLine(const char *receivedData) {
@@ -63,17 +66,22 @@ class AlternateCbHandler: public Callback{
 
 void setup() {
   receiver=new SerialReceiver(new CbHandler());
-  alternateReceiver=new AlternateReceiver(new AlternateCbHandler(),2,3);
+  alternateReceiver=new AlternateReceiver(NULL,2,3);
   receiver->init(9600);
   alternateReceiver->init(19200);
+  victron=new VictronReceiver(alternateReceiver);
   receiver->sendSerial("start",true);
 }
 
 void loop() {
   receiver->loop();
-  alternateReceiver->loop();
+  victron->loop();
   if (alternateReceiver->didOverflow()){
     Serial.println("@@OVF");
   }
-
+  long current=millis();
+  if ((current - lastout) >= 2000){
+    lastout=current;
+    victron->writeStatus(receiver);
+  }
 }

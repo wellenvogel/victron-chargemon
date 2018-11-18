@@ -9,13 +9,13 @@ class SerialReceiver: public Receiver{
   void init(int baud){
     Serial.begin(baud);
   }
-  void loop(){
+  virtual void loop(){
     while (Serial.available() > 0) {
     int c = Serial.read();
     if (c < 0) return;
     receiveByte(c);
     loopAction();
-  }
+    }
   }
   virtual void sendSerial(const char *txt,bool nl=false){
     if (! nl) Serial.print(txt);

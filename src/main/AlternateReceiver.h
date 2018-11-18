@@ -1,7 +1,8 @@
+#include <NeoSWSerial.h>
+
 #include <Arduino.h>
 #ifndef _ALTERNATE_RECEIVER_H
 #include "Receiver.h"
-#include <NeoSWSerial.h>
 #define SERIAL_MAXSIZE 32
 class AlternateReceiver: public Receiver{
   private:
@@ -22,9 +23,6 @@ class AlternateReceiver: public Receiver{
   }
   void init(int baud){
     serial->begin(baud);
-  }
-  void loop(){
-    loopAction();
   }
   virtual void sendSerial(const char *txt,bool nl=false){
     if (! nl) serial->print(txt);

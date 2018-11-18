@@ -18,6 +18,9 @@ class Receiver{
     maxBytes=maxSize;
     lineReceived=false;
     }
+  void setCallback(Callback *cb){
+    callback=cb;  
+  }
   virtual ~Receiver(){
     delete receivedData;
   }
@@ -35,12 +38,16 @@ class Receiver{
     receivedData[receivedBytes] = c;
     receivedBytes++;
   }
-  
+  protected:
   void loopAction(){
    if (lineReceived){
-    callback->callback(receivedData);
+    if (callback != NULL) callback->callback(receivedData);
     lineReceived=false;
    }
+  }
+  public:
+  virtual void loop(){
+    loopAction();
   }
   boolean didOverflow(){
     boolean rt=hasOverflow;
