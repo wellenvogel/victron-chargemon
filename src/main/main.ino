@@ -10,11 +10,19 @@ VictronReceiver *victron=NULL;
 long lastout=0;
 
 const char DELIMTER[] = " ";
+boolean valuesValid=false;
+void printStatus(){
+  receiver->sendSerial("#STATUS",true);
+  receiver->sendSerial("Connection=");
+  receiver->sendSerial(valuesValid?"OK":"FAIL",true);
+  victron->writeStatus(receiver);
+  receiver->sendSerial("#END",true);
+}
 void handleSerialLine(const char *receivedData) {
   char * tok = strtok(receivedData, DELIMTER);
   if (! tok) return;
   if (strcasecmp(tok, "STATUS") == 0) {
-    victron->writeStatus(receiver);
+    printStatus();
     return;
   }
   if (strcasecmp(tok, "RESET") == 0) {
@@ -75,6 +83,12 @@ void loop() {
   long current=millis();
   if (loopIdx>=0 && Settings::getCurrentValue(loopIdx) && (current - lastout) >= (Settings::getCurrentValue(loopIdx)*1000)){
     lastout=current;
-    victron->writeStatus(receiver);
+    printStatus();
+  }
+  bool ns=victron->valuesValid();
+  if (ns != valuesValid){
+    valuesValid=ns;
+    receiver->sendSerial("#STATUSCHANGE RECEIVER",true);
+    printStatus();
   }
 }

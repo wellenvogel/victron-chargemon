@@ -15,7 +15,7 @@ static char* stateNames[]={
 };
 class VictronReceiver : public Callback{
   public:
-  const int MAX_AGE=30000;
+  static const int MAX_AGE=30000;
   typedef enum{
     Off=0,
     LowPower=1,
@@ -52,6 +52,19 @@ class VictronReceiver : public Callback{
   VictronReceiver(Receiver *r){
     receiver=r;
     receiver->setCallback(this);
+  }
+  static boolean isValidValue(long valueTime,long currentTime){
+    return (valueTime+MAX_AGE) >= currentTime;
+  }
+
+  boolean valuesValid(){
+    long current=millis();
+    if (! isValidValue(info.lastState,current)) return false;
+    if (! isValidValue(info.lastVoltage,current)) return false;
+    if (! isValidValue(info.lastPvoltage,current)) return false;
+    if (! isValidValue(info.lastPpower,current)) return false;
+    if (! isValidValue(info.lastBcurrent,current)) return false;
+    return true;
   }
 
   virtual void callback(const char *buffer){
@@ -132,7 +145,6 @@ class VictronReceiver : public Callback{
   void writeStatus(Receiver *out){
     long current=millis();
     char buf[10];
-    out->sendSerial("#STATUS",true);
     if ((info.lastVoltage+MAX_AGE) >= current){
       out->sendSerial("V=");
       char buf[10];
@@ -170,7 +182,6 @@ class VictronReceiver : public Callback{
     else{
       out->sendSerial("CS=##",true);
     }
-    out->sendSerial("#END",true);
   }
 };
 #endif
