@@ -28,13 +28,13 @@ class VictronReceiver : public Callback{
     long lastState=0;
     ChargerState state=Off;
     long lastVoltage=0;
-    float voltage=0;
+    int voltage=0;
     long lastPvoltage=0;
-    float pVoltage=0;
+    int pVoltage=0;
     long lastPpower=0;
-    float pPower=0;
+    int pPower=0;
     long lastBcurrent=0;
-    float bCurrent=0;
+    int bCurrent=0;
   }VictronInfo;
   private:
   Receiver *receiver;
@@ -68,8 +68,8 @@ class VictronReceiver : public Callback{
     if (! label || ! value) return;
     if (strcmp("V",label) == 0){
       //battery voltage
-      float nv=atoi(value)/1000.0f;
-      if (nv < 0 || nv > 100) return;
+      float nv=atoi(value);
+      if (nv < 0 || nv > 100000) return;
       info.lastVoltage=current;
       info.voltage=nv;
       if (debug){
@@ -79,8 +79,8 @@ class VictronReceiver : public Callback{
     }
     if (strcmp("VPV",label) == 0){
       //panel voltage
-      float nv=atoi(value)/1000.0f;
-      if (nv < 0 || nv > 100) return;
+      float nv=atoi(value);
+      if (nv < 0 || nv > 100000) return;
       info.lastPpower=current;
       info.pPower=nv;
       if (debug){
@@ -90,7 +90,7 @@ class VictronReceiver : public Callback{
     }
     if (strcmp("PPV",label) == 0){
       //panel power
-      float nv=atoi(value)*1.0f;
+      float nv=atoi(value);
       if (nv < 0 || nv > 1000) return;
       info.lastPvoltage=current;
       info.pVoltage=nv;
@@ -101,8 +101,8 @@ class VictronReceiver : public Callback{
     }
     if (strcmp("I",label) == 0){
       //Battery current
-      float nv=atoi(value)/1000.0f;
-      if (nv < 0 || nv > 1000) return;
+      float nv=atoi(value);
+      if (nv < 0 || nv > 100000) return;
       info.lastBcurrent=current;
       info.bCurrent=nv;
       if (debug){
@@ -131,27 +131,26 @@ class VictronReceiver : public Callback{
   }
   void writeStatus(Receiver *out){
     long current=millis();
+    char buf[10];
     out->sendSerial("#STATUS",true);
     if ((info.lastVoltage+MAX_AGE) >= current){
       out->sendSerial("V=");
       char buf[10];
-      out->sendSerial(dtostrf(info.voltage,2,3,buf),true); 
+      out->sendSerial(ltoa(info.voltage,buf,10),true); 
     }
     else{
       out->sendSerial("V=##",true);
     }
     if ((info.lastPvoltage+MAX_AGE) >= current){
       out->sendSerial("VPV=");
-      char buf[10];
-      out->sendSerial(dtostrf(info.pVoltage,2,3,buf),true); 
+      out->sendSerial(ltoa(info.pVoltage,buf,10),true); 
     }
     else{
       out->sendSerial("VPV=##",true);
     }
     if ((info.lastPpower+MAX_AGE) >= current){
       out->sendSerial("PPV=");
-      char buf[10];
-      out->sendSerial(dtostrf(info.pPower,3,3,buf),true); 
+      out->sendSerial(ltoa(info.pPower,buf,10),true); 
     }
     else{
       out->sendSerial("PPV=##",true);
@@ -159,7 +158,7 @@ class VictronReceiver : public Callback{
     if ((info.lastBcurrent+MAX_AGE) >= current){
       out->sendSerial("I=");
       char buf[10];
-      out->sendSerial(dtostrf(info.bCurrent,3,3,buf),true); 
+      out->sendSerial(ltoa(info.bCurrent,buf,10),true); 
     }
     else{
       out->sendSerial("I=##",true);
