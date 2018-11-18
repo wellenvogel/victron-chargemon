@@ -2,6 +2,7 @@
 #include "SerialReceiver.h"
 #include "AlternateReceiver.h"
 #include "VictronReceiver.h"
+#include "Settings.h"
 
 SerialReceiver *receiver=NULL;
 AlternateReceiver *alternateReceiver=NULL;
@@ -12,43 +13,38 @@ const char DELIMTER[] = " ";
 void handleSerialLine(const char *receivedData) {
   char * tok = strtok(receivedData, DELIMTER);
   if (! tok) return;
-  /*
   if (strcasecmp(tok, "STATUS") == 0) {
-    printStatus();
-    return;
-  }
-  if (strcasecmp(tok, "INTERVAL") == 0) {
-    char * val = strtok(NULL, DELIMTER);
-    if (! val) return;
-    interval = atol(val);
-    EEPROM.put(EEPROM_INTERVAL_ADDR, interval);
-    Serial.print("#Interval set to: ");
-    Serial.println(interval, 10);
+    victron->writeStatus(receiver);
     return;
   }
   if (strcasecmp(tok, "RESET") == 0) {
-    Serial.println("##RESET");
-    initData(true);
-    printStatus();
+    receiver->sendSerial("##RESET",true);
+    Settings::reset(true);
+    Settings::printSettings(receiver);
     return;
   }
-  */
-  if (strcasecmp(tok, "TEST") == 0) {
-    Serial.println("##TEST ");
-    alternateReceiver->sendSerial(strtok(NULL,DELIMTER),true);
+  if (strcasecmp(tok, "SET") == 0) {
+    receiver->sendSerial("##SET",true);
+    char * name = strtok(NULL, DELIMTER);
+    if (!name) {
+      Settings::printSettings(receiver);
+      return;
+    }
+    char * val = strtok(NULL, DELIMTER);
+    if (! val) return;
+    bool rt=Settings::setCurrentValue(name,atol(val));
+    if (! rt){
+      receiver->sendSerial("##SET failed",true);
+    }
+    else{
+      receiver->sendSerial("##OK",true);
+      Settings::printSettings(receiver);
+    }
     return;
   }
-  /*
-  if (strcasecmp(tok, "REL") == 0) {
-    int oo=atoi(strtok(NULL,DELIMTER));
-    Serial.print("##REL ");
-    Serial.println(oo?"ON":"OFF");
-    digitalWrite(4,oo?LOW:HIGH);
-    return;
-  }
-  */
-  Serial.print("##Unknown command: ");
-  Serial.println(receivedData);
+ 
+  receiver->sendSerial("##Unknown command: ");
+  receiver->sendSerial(receivedData,true);
 }
 
 class CbHandler : public Callback{
@@ -57,13 +53,7 @@ class CbHandler : public Callback{
   }
 };
 
-class AlternateCbHandler: public Callback{
-  virtual void callback(const char * data){
-    Serial.print("##SOFT ");
-    Serial.println(data);
-  }
-};
-
+int loopIdx=-1;
 void setup() {
   receiver=new SerialReceiver(new CbHandler());
   alternateReceiver=new AlternateReceiver(NULL,2,3);
@@ -71,6 +61,9 @@ void setup() {
   alternateReceiver->init(19200);
   victron=new VictronReceiver(alternateReceiver);
   receiver->sendSerial("start",true);
+  Settings::reset(false);
+  Settings::printSettings(receiver);
+  loopIdx=Settings::itemIndex("StatusTime");
 }
 
 void loop() {
@@ -80,7 +73,7 @@ void loop() {
     Serial.println("@@OVF");
   }
   long current=millis();
-  if ((current - lastout) >= 2000){
+  if (loopIdx>=0 && Settings::getCurrentValue(loopIdx) && (current - lastout) >= (Settings::getCurrentValue(loopIdx)*1000)){
     lastout=current;
     victron->writeStatus(receiver);
   }
