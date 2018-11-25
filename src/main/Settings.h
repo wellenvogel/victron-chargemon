@@ -9,7 +9,7 @@
 
 typedef struct {
   const char* name;
-  int offset;
+  byte offset;
   int defaultValue;
 } SettingItem;
 
@@ -20,8 +20,8 @@ const SettingItem settings[]={
   {"MinTime",3*sizeof(int),30},         //minimal on time (minutes) (except for emergency off)
   {"KeepOnVoltage",4*sizeof(int),12500},//voltage(mv) if battery is above - keep on
   {"OffVoltage",5*sizeof(int),11800},   //voltage(mv) if below - immediately switch off
-  {"MaxTime",6*sizeof(int),120},       //max time (in minutes) we keep on before we wait for float again
-  {"StatusInterval",7*sizeof(int),5}       //time in s between status reports
+  {"MaxTime",6*sizeof(int),120},        //max time (in minutes) we keep on before we wait for float again
+  {"StatusInterval",7*sizeof(int),5}    //time in s between status reports
 };
 class Settings{
   public:
@@ -29,19 +29,19 @@ class Settings{
 
   private:
   static const int MAGIC=0xfafa;
-  static int itemOffset(const char* item){
-    int idx=itemIndex(item);
+  static byte itemOffset(const char* item){
+    byte idx=itemIndex(item);
     if (idx <0) return -1;
     return settings[idx].offset;
   }
-  static bool validIndex(int idx){
+  static bool validIndex(byte idx){
     if (idx < 0 || idx >= (sizeof(settings)/sizeof(SettingItem))) return false;
     return true;
   }
 
   public:
-  static int itemIndex(const char * item){
-    for (int i=0;i<(sizeof(settings)/sizeof(SettingItem));i++){
+  static byte itemIndex(const char * item){
+    for (byte i=0;i<(sizeof(settings)/sizeof(SettingItem));i++){
       if (strcasecmp(settings[i].name,item)==0){
         return i;
       }
@@ -52,7 +52,7 @@ class Settings{
   static int getCurrentValue(const char *name){
     return getCurrentValue(itemIndex(name));
   }
-  static int getCurrentValue(int idx){
+  static int getCurrentValue(byte idx){
     if (!validIndex(idx)) return 0;
     int rt=0;
     EEPROM.get(settings[idx].offset,rt);
@@ -62,7 +62,7 @@ class Settings{
   static bool setCurrentValue(const char *name, int value){
     return setCurrentValue(itemIndex(name),value);
   }
-  static bool setCurrentValue(int idx, int value){
+  static bool setCurrentValue(byte idx, int value){
     if (! validIndex(idx)) return false;
     EEPROM.put(settings[idx].offset,value);
     return true; 
@@ -83,7 +83,7 @@ class Settings{
 
   static void printSettings(Receiver* out){
     out->sendSerial("#SETTINGS",true);
-    for (int idx =0 ;idx < (sizeof(settings)/sizeof(SettingItem));idx++){
+    for (byte idx =0 ;idx < (sizeof(settings)/sizeof(SettingItem));idx++){
       out->sendSerial(settings[idx].name);
       out->sendSerial("=");
       char buf[10];
