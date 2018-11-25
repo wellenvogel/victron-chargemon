@@ -21,7 +21,7 @@ const SettingItem settings[]={
   {"KeepOnVoltage",4*sizeof(int),12500},//voltage(mv) if battery is above - keep on
   {"OffVoltage",5*sizeof(int),11800},   //voltage(mv) if below - immediately switch off
   {"MaxTime",6*sizeof(int),120},       //max time (in minutes) we keep on before we wait for float again
-  {"StatusTime",7*sizeof(int),5}       //time in s between status reports
+  {"StatusInterval",7*sizeof(int),5}       //time in s between status reports
 };
 class Settings{
   public:
@@ -42,7 +42,7 @@ class Settings{
   public:
   static int itemIndex(const char * item){
     for (int i=0;i<(sizeof(settings)/sizeof(SettingItem));i++){
-      if (strcmp(settings[i].name,item)==0){
+      if (strcasecmp(settings[i].name,item)==0){
         return i;
       }
     }
