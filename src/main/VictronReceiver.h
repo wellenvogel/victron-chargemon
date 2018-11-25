@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include "Receiver.h"
 #include "Callback.h"
+#include "TimeBase.h"
 
 static int debug=0;
 static char* stateNames[]={
@@ -15,7 +16,7 @@ static char* stateNames[]={
 };
 class VictronReceiver : public Callback{
   public:
-  static const int MAX_AGE=30000;
+  static const int MAX_AGE=30;
   typedef enum{
     Off=0,
     LowPower=1,
@@ -25,15 +26,15 @@ class VictronReceiver : public Callback{
     Float=5
   }ChargerState;
   typedef struct{
-    long lastState=0;
+    unsigned long lastState=0;
     ChargerState state=Off;
-    long lastVoltage=0;
+    unsigned long lastVoltage=0;
     int voltage=0;
-    long lastPvoltage=0;
+    unsigned long lastPvoltage=0;
     int pVoltage=0;
-    long lastPpower=0;
+    unsigned long lastPpower=0;
     int pPower=0;
-    long lastBcurrent=0;
+    unsigned long lastBcurrent=0;
     int bCurrent=0;
   }VictronInfo;
   private:
@@ -53,12 +54,12 @@ class VictronReceiver : public Callback{
     receiver=r;
     receiver->setCallback(this);
   }
-  static boolean isValidValue(long valueTime,long currentTime){
+  static boolean isValidValue(unsigned long valueTime,unsigned long currentTime){
     return (valueTime+MAX_AGE) >= currentTime;
   }
 
   boolean valuesValid(){
-    long current=millis();
+    long current=TimeBase::timeSeconds();
     if (! isValidValue(info.lastState,current)) return false;
     if (! isValidValue(info.lastVoltage,current)) return false;
     if (! isValidValue(info.lastPvoltage,current)) return false;
@@ -68,7 +69,7 @@ class VictronReceiver : public Callback{
   }
 
   virtual void callback(const char *buffer){
-    long current=millis();
+    long current=TimeBase::timeSeconds();
     const char *delim="\t ";
     char *label=strtok(buffer,delim);
     char *value=strtok(NULL,delim);
@@ -143,7 +144,7 @@ class VictronReceiver : public Callback{
     return &info;
   }
   void writeStatus(Receiver *out){
-    long current=millis();
+    long current=TimeBase::timeSeconds();
     char buf[10];
     if ((info.lastVoltage+MAX_AGE) >= current){
       out->sendSerial("V=");

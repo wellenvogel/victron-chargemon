@@ -20,6 +20,6 @@ class TimeBase{
   }
 };
 
-unsigned long TimeBase::overflowCounter=0;
+unsigned long TimeBase::overflowCounter=1; //start at a high value to set all diffs to invalid...
 unsigned long TimeBase::lastMillis=0;
 #endif

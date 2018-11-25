@@ -4,6 +4,8 @@
 #include "VictronReceiver.h"
 #include "Settings.h"
 #include "Controller.h"
+#include "History.h"
+#include "TimeBase.h"
 
 SerialReceiver *receiver=NULL;
 AlternateReceiver *alternateReceiver=NULL;
@@ -53,6 +55,22 @@ void handleSerialLine(const char *receivedData) {
     }
     return;
   }
+  if (strcasecmp(tok, "HIST") == 0) {
+    History::writeHistory(receiver);
+    return;
+  }
+  if (strcasecmp(tok, "THIST") == 0) {
+    long s=TimeBase::timeSeconds();
+    /*
+    unsigned long e=History::getEntry(s,1);
+    Serial.println(History::TIMEMASK,16);
+    Serial.println(History::CAUSEMASK,16);
+    Serial.println(s,10);
+    Serial.println(e,16);
+    */
+    History::addEntry(s,1);
+    return;
+  }
  
   receiver->sendSerial("##Unknown command: ");
   receiver->sendSerial(receivedData,true);
@@ -64,7 +82,7 @@ class CbHandler : public Callback{
   }
 };
 
-int loopIdx=-1;
+byte loopIdx=-1;
 void setup() {
   receiver=new SerialReceiver(new CbHandler());
   alternateReceiver=new AlternateReceiver(NULL,2,3);
@@ -75,7 +93,7 @@ void setup() {
   receiver->sendSerial("start",true);
   Settings::reset(false);
   Settings::printSettings(receiver);
-  loopIdx=Settings::itemIndex("StatusTime");
+  loopIdx=Settings::itemIndex(SETTINGS_STATUS_INTERVAL);
 }
 
 void loop() {
@@ -85,7 +103,7 @@ void loop() {
   if (alternateReceiver->didOverflow()){
     Serial.println("@@OVF");
   }
-  long current=millis();
+  unsigned long current=millis();
   if (loopIdx>=0 && Settings::getCurrentValue(loopIdx) && (current - lastout) >= (Settings::getCurrentValue(loopIdx)*1000)){
     lastout=current;
     printStatus();

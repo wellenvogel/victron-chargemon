@@ -7,28 +7,25 @@
  * each setting is a 16 bit value
  */
 
-typedef struct {
-  const char* name;
-  byte offset;
-  int defaultValue;
-} SettingItem;
+#define SETTINGS_ENABLED          "Enabled"
+#define SETTINGS_FLOAT_TIME       "FloatTime"
+#define SETTINGS_MIN_TIME         "MinTime"
+#define SETTINGS_KEEP_VOLTAGE     "KeepOnVoltage"
+#define SETTINGS_OFF_VOLTAGE      "OffVoltage"
+#define SETTINGS_MAX_TIME         "MaxTime"
+#define SETTINGS_STATUS_INTERVAL  "StatusInterval"
 
-const SettingItem settings[]={
-  //typically 0 means item is off
-  {"Enabled",sizeof(int),1},
-  {"FloatTime",2*sizeof(int),10},       //float time in minutes before switching on
-  {"MinTime",3*sizeof(int),30},         //minimal on time (minutes) (except for emergency off)
-  {"KeepOnVoltage",4*sizeof(int),12500},//voltage(mv) if battery is above - keep on
-  {"OffVoltage",5*sizeof(int),11800},   //voltage(mv) if below - immediately switch off
-  {"MaxTime",6*sizeof(int),120},        //max time (in minutes) we keep on before we wait for float again
-  {"StatusInterval",7*sizeof(int),5}    //time in s between status reports
-};
 class Settings{
   public:
   Settings();
-
   private:
   static const int MAGIC=0xfafa;
+  typedef struct {
+    const char* name;
+    byte offset;
+    int defaultValue;
+  } SettingItem;
+  static const SettingItem settings[7]; //keep this consistent with the initializer
   static byte itemOffset(const char* item){
     byte idx=itemIndex(item);
     if (idx <0) return -1;
@@ -94,4 +91,15 @@ class Settings{
   }
   
 };
+const Settings::SettingItem Settings::settings[]={
+  //typically 0 means item is off
+  {SETTINGS_ENABLED,sizeof(int),1},
+  {SETTINGS_FLOAT_TIME,2*sizeof(int),10},       //float time in minutes before switching on
+  {SETTINGS_MIN_TIME,3*sizeof(int),30},         //minimal on time (minutes) (except for emergency off)
+  {SETTINGS_KEEP_VOLTAGE,4*sizeof(int),12500},//voltage(mv) if battery is above - keep on
+  {SETTINGS_OFF_VOLTAGE,5*sizeof(int),11800},   //voltage(mv) if below - immediately switch off
+  {SETTINGS_MAX_TIME,6*sizeof(int),120},        //max time (in minutes) we keep on before we wait for float again
+  {SETTINGS_STATUS_INTERVAL,7*sizeof(int),5}    //time in s between status reports
+  };
+
 #endif

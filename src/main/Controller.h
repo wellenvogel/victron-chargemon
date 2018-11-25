@@ -23,11 +23,11 @@ class Controller{
     this->receiver=receiver;
     pinMode(PORT,OUTPUT);
     digitalWrite(PORT,PORT_OFF);
-    settingsFloatTime=Settings::itemIndex("FloatTime");
-    settingsMinTime=Settings::itemIndex("MinTime");
-    settingsMaxTime=Settings::itemIndex("MaxTime");
-    settingsOnVoltage=Settings::itemIndex("KeepOnVoltage");
-    settingsOffVoltage=Settings::itemIndex("OffVoltage");
+    settingsFloatTime=Settings::itemIndex(SETTINGS_FLOAT_TIME);
+    settingsMinTime=Settings::itemIndex(SETTINGS_MIN_TIME);
+    settingsMaxTime=Settings::itemIndex(SETTINGS_MAX_TIME);
+    settingsOnVoltage=Settings::itemIndex(SETTINGS_KEEP_VOLTAGE);
+    settingsOffVoltage=Settings::itemIndex(SETTINGS_OFF_VOLTAGE);
   }
 
   private:
@@ -136,13 +136,13 @@ class Controller{
      }
   }  
   void writeStatus(Receiver *out){
-    out->sendSerial("State=");
+    out->sendSerial("CState=");
     out->sendSerial(statusToString(state),true);
-    out->sendSerial("Time=");
+    out->sendSerial("CTime=");
     char buf[10];
     snprintf(buf,10,"%d",(TimeBase::timeSeconds()-lastChange));
     out->sendSerial(buf,true);
-    out->sendSerial("Output=");
+    out->sendSerial("COutput=");
     out->sendSerial(statusToOutput(state)?"On":"Off",true);
   }
 };
