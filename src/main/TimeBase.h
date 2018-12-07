@@ -1,6 +1,7 @@
 #ifndef TIMEBASE_H
 #define TIMEBASE_H
 #include <Arduino.h>
+//32 bit seconds - about 136 years
 class TimeBase{
   private:
   static unsigned long overflowCounter;

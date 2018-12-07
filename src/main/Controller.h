@@ -1,5 +1,5 @@
 #ifndef CONTROLLER_H
-#define CONTROLLR_H
+#define CONTROLLER_H
 #include <Arduino.h>
 #include "TimeBase.h"
 #include "VictronReceiver.h"
@@ -73,6 +73,9 @@ class Controller{
     if (iv && checkElapsed(iv)) return true;
     return false;
   }
+
+
+  public:
   static const char * statusToString(State state){
     switch(state){
       case Init: return "Init";
@@ -82,9 +85,6 @@ class Controller{
     }
     return "Unknown";
   }
-
-
-  public:
   void loop(){
     bool receiverOk=receiver->valuesValid();
     if (! receiverOk){
@@ -144,6 +144,15 @@ class Controller{
     out->sendSerial(buf,true);
     out->sendSerial("COutput=");
     out->sendSerial(statusToOutput(state)?"On":"Off",true);
+  }
+
+  unsigned long getCumulativeOnTime(){
+    //TODO
+    return 0;
+  }
+
+  const State getState(){
+    return state;
   }
 };
 #endif
