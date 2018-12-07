@@ -1,4 +1,5 @@
 #include "Callback.h"
+#include "Receiver.h"
 #include "SerialReceiver.h"
 #include "AlternateReceiver.h"
 #include "VictronReceiver.h"
@@ -7,11 +8,6 @@
 #include "History.h"
 #include "TimeBase.h"
 
-//the time interval(s) - 8 minutes -> 360 entries / 24h
-//480
-#define HISTORY_INTERVAL 5
-
-#define HISTORY_SIZE 10 
 
 
 SerialReceiver *receiver=NULL;
@@ -37,7 +33,7 @@ void printStatus(){
 void handleSerialLine(const char *receivedData) {
   char * tok = strtok(receivedData, DELIMTER);
   if (! tok) return;
-  if (strcasecmp(tok, "STATUS") == 0) {
+  if (strcasecmp(tok, "STATUS") == 0 || strcasecmp(tok, "STATE") == 0) {
     printStatus();
     return;
   }
@@ -148,9 +144,9 @@ void loop() {
     (history && (nSize != history->getSize() || nInterval != history->getInterval()))
     ){
       receiver->sendSerial("#RESETHISTORY, size=");
-      receiver->sendSerial(nSize);
+      receiver->sendSeriali(nSize);
       receiver->sendSerial(", interval=");
-      receiver->sendSerial(nInterval,true);
+      receiver->sendSeriali(nInterval,true);
       if (history){
         delete history;
         history=NULL;

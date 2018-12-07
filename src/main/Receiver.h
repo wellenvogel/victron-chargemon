@@ -60,6 +60,12 @@ class Receiver{
     sendSerial(ltoa(v,buf,10),nl);
   }
 
+  //for some very strange reason the overloading
+  //does not work for the main file...
+  void sendSeriali(int v,bool nl=false){
+    sendSerial(v,nl);
+  }
+
   virtual void sendSerial(const char * txt, bool nl=false)=0;
  
   

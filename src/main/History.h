@@ -169,7 +169,7 @@ class History{
     out->sendSerial("NE=");
     out->sendSerial(numEntries(),true);
     unsigned long diff=now-lastWriteTime;
-    unsigned long average=0;
+    unsigned long sum=0;
     while (count >0){
       uint16_t entry=history[current];
       out->sendSerial("TE=");
@@ -180,7 +180,7 @@ class History{
       out->sendSerial(Controller::statusToString(stateFromEntry(entry)));
       out->sendSerial(",");
       unsigned long seconds=secondsFromEntry(entry);
-      average+=seconds;
+      sum+=seconds;
       out->sendSerial(seconds,true);
       diff+=timeInterval;
       current-=1;
@@ -188,8 +188,8 @@ class History{
       count--;
     }
     if (numEntries()){
-      out->sendSerial("AV=");
-      out->sendSerial(average*100/(numEntries()*timeInterval),true);
+      out->sendSerial("SU=");
+      out->sendSerial(sum,true);
     }
   }
   

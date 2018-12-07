@@ -123,7 +123,7 @@ class Controller{
           changeState(Init);
           return;
         }
-        if (checkElapsedSetting(settingsMinTime)){
+        if (checkElapsedSetting(settingsFloatTime)){
           changeState(OnMinTime);
           return;
         }

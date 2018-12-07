@@ -121,7 +121,7 @@ const Settings::SettingItem Settings::settings[]={
   {SETTINGS_STATUS_INTERVAL,5},           //time in s between status reports
   {SETTINGS_HISTORY_SIZE,360,10,400},     //number of entries in history, be carefull with the max. - memory exhausted...
   {SETTINGS_HISTORY_INTERVAL,480,3,3600}, //interval in seconds between history entries
-  {SETTINGS_ON_TIME,300,0,1800}           //time to stay on for testing
+  {SETTINGS_ON_TIME,5,0,30}               //time to stay on for testing (minutes)
   };
 
 #endif
