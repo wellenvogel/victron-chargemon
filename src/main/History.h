@@ -15,7 +15,7 @@
  */
 //the time interval(s) - 8 minutes -> 360 entries / 24h
 //480
-#define TIME_INTERVAL 10 
+#define TIME_INTERVAL 5 
 //number of entries in the history list
 // 360
 #define HIST_MAX 10
@@ -31,7 +31,7 @@ class History{
   static const uint16_t  STATE_SHIFT=5;
   static const uint16_t ONTIME_MASK=0x07;
   int writePointer=0;
-  int startPointer=0;
+  bool hasWrapped=false;
   unsigned long lastWriteTime=0; //this is the time we have written our last entry
   unsigned long reportedOnTime=0;
   VictronReceiver *victron;
@@ -84,18 +84,13 @@ class History{
       Serial.print("##write entry: ");
       Serial.print(writePointer,10);
       Serial.print(",");
-      Serial.println(startPointer,10);
+      Serial.println(hasWrapped,2);
     }
     history[writePointer]=dataToEntry(voltage,state,timeToReport);
     writePointer++;
     if (writePointer >= HIST_MAX){
       writePointer=0;
-    }
-    if (writePointer <= startPointer){
-      startPointer=writePointer+1;
-      if (startPointer >= HIST_MAX){
-        startPointer=0;
-      }
+      hasWrapped=true;
     }
   }
 
@@ -130,14 +125,21 @@ class History{
     }
   }
   int numEntries(){
-    if (writePointer >= startPointer) return (writePointer-startPointer);
-    return writePointer + (HIST_MAX-startPointer)+1;
+    if (! hasWrapped) return writePointer;
+    return HIST_MAX;
+  }
+  int lastWrittenEntry(){
+    if (! hasWrapped){
+      return writePointer-1;
+    }
+    if (writePointer > 0) return writePointer-1;
+    return HIST_MAX-1;
   }
   void writeHistory(Receiver *out){
     int count=numEntries();
     if (! count) return;
-    int current=writePointer-1;
-    if (current < 0) current=HIST_MAX-1;
+    int current=lastWrittenEntry();
+    if (current < 0) return;
     char buf[10];
     out->sendSerial("TS=");
     unsigned long now=TimeBase::timeSeconds();
