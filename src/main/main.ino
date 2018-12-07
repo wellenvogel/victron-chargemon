@@ -7,12 +7,22 @@
 #include "History.h"
 #include "TimeBase.h"
 
+//the time interval(s) - 8 minutes -> 360 entries / 24h
+//480
+#define HISTORY_INTERVAL 5
+
+#define HISTORY_SIZE 10 
+
+
 SerialReceiver *receiver=NULL;
 AlternateReceiver *alternateReceiver=NULL;
 VictronReceiver *victron=NULL;
 Controller *controller=NULL;
 History* history=NULL;
 long lastout=0;
+
+byte historySizeIndex=-1;
+byte historyIntervalIndex=-1;
 
 const char DELIMTER[] = " ";
 boolean valuesValid=false;
@@ -58,7 +68,7 @@ void handleSerialLine(const char *receivedData) {
   }
   if (strcasecmp(tok, "HIST") == 0) {
     receiver->sendSerial("##HISTORY",true);
-    history->writeHistory(receiver);
+    if (history) history->writeHistory(receiver);
     receiver->sendSerial("#END",true);
     return;
   }
@@ -82,9 +92,18 @@ void setup() {
   victron=new VictronReceiver(alternateReceiver);
   controller=new Controller(victron);
   receiver->sendSerial("start",true);
-  history=new History(victron,controller);
-  Settings::reset(false);
+  bool rt=Settings::reset(false);
+  if (rt){
+    receiver->sendSerial("##INITIALIZED SETTINGS",true);
+  }
   Settings::printSettings(receiver);
+  historyIntervalIndex=Settings::itemIndex(SETTINGS_HISTORY_INTERVAL);
+  historySizeIndex=Settings::itemIndex(SETTINGS_HISTORY_SIZE);
+  int historyInterval=Settings::getCurrentValue(historyIntervalIndex);
+  int historySize=Settings::getCurrentValue(historySizeIndex);
+  if (historyInterval > 0 && historySize > 0){
+    history=new History(historySize,historyInterval,victron,controller);
+  }
   loopIdx=Settings::itemIndex(SETTINGS_STATUS_INTERVAL);
 }
 
@@ -92,7 +111,7 @@ void loop() {
   receiver->loop();
   victron->loop();
   controller->loop();
-  history->loop();
+  if (history) history->loop();
   if (alternateReceiver->didOverflow()){
     Serial.println("@@OVF");
   }
@@ -107,4 +126,20 @@ void loop() {
     receiver->sendSerial("#STATUSCHANGE RECEIVER",true);
     printStatus();
   }
+  int nSize=Settings::getCurrentValue(historySizeIndex);
+  int nInterval=Settings::getCurrentValue(historyIntervalIndex);
+  if (
+    (history == NULL && nSize > 0 && nInterval > 0)
+    ||
+    (history && (nSize != history->getSize() || nInterval != history->getInterval()))
+    ){
+      receiver->sendSerial("#RESETHISTORY");
+      if (history){
+        delete history;
+        history=NULL;
+      }
+      if (nSize && nInterval){
+        history=new History(nSize,nInterval,victron,controller);
+      }
+    }
 }

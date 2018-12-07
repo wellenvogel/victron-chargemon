@@ -148,7 +148,7 @@ class Controller{
 
   unsigned long getCumulativeOnTime(){
     //TODO
-    return 0;
+    return TimeBase::timeSeconds()/2;
   }
 
   const State getState(){

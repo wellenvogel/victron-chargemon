@@ -13,25 +13,21 @@
  * 2 Bits spare
  * 3 Bit on time in 1/7 time units
  */
-//the time interval(s) - 8 minutes -> 360 entries / 24h
-//480
-#define TIME_INTERVAL 5 
-//number of entries in the history list
-// 360
-#define HIST_MAX 10
 
 int hdebug=1;
 
 class History{
   private:
-  uint16_t history[HIST_MAX];
-  static const uint16_t VOLTAGE_MASK=0xff00;
+  uint16_t *history=NULL;
+  static const uint16_t VOLTAGE_MASK=0xff;
   static const uint16_t  VOLTAGE_SHIFT=8;
-  static const uint16_t STATE_MASK=0xe0;
+  static const uint16_t STATE_MASK=0x07;
   static const uint16_t  STATE_SHIFT=5;
   static const uint16_t ONTIME_MASK=0x07;
   int writePointer=0;
   bool hasWrapped=false;
+  int timeInterval=0;
+  int historySize=0;
   unsigned long lastWriteTime=0; //this is the time we have written our last entry
   unsigned long reportedOnTime=0;
   VictronReceiver *victron;
@@ -41,14 +37,13 @@ class History{
     //we have to be carefull when multiplying seocnds
     //as we cannot "waste" any bits
     //so we need some 64 bit arithmetics
-    uint64_t reported=(uint64_t)reportedOnTime * (uint64_t)7/(uint64_t)TIME_INTERVAL;
-    uint64_t diff=((uint64_t)onTimeInSeconds-reported)*(uint64_t)7/(uint64_t)TIME_INTERVAL;
-    if (diff > 7) diff=7;
+    uint64_t reported=(uint64_t)reportedOnTime * (uint64_t)timeInterval/(uint64_t)7;
+    uint64_t diff=((uint64_t)onTimeInSeconds-reported)*(uint64_t)7/(uint64_t)timeInterval;
     return diff;
   }
 
   unsigned long reportTimeToOnTime(uint16_t reportTime){
-    return (unsigned long)reportTime*(unsigned long)TIME_INTERVAL/7;
+    return ((unsigned long)reportTime*(unsigned long)timeInterval)/(unsigned long)7;
   }
 
   uint16_t dataToEntry(int voltage,Controller::State state,uint16_t reportTime){
@@ -57,9 +52,11 @@ class History{
     if (voltage <= 60) voltage=0;
     else voltage=voltage-60;
     if (voltage > 255) voltage=255;
+    if (reportTime > 7) reportTime=7;
     rt|=(uint16_t)(voltage & VOLTAGE_MASK)<<VOLTAGE_SHIFT;
     rt|=((uint16_t)state & STATE_MASK) << STATE_SHIFT;
     rt|=reportTime & ONTIME_MASK;
+    return rt;
   }
 
   int voltageFromEntry(uint16_t entry){
@@ -84,11 +81,19 @@ class History{
       Serial.print("##write entry: ");
       Serial.print(writePointer,10);
       Serial.print(",");
-      Serial.println(hasWrapped,2);
+      Serial.print(hasWrapped,2);
+      Serial.print(",");
+      Serial.print(voltage,10);
+      Serial.print(",");
+      Serial.print(timeToReport,10);
+      Serial.print(",");
     }
     history[writePointer]=dataToEntry(voltage,state,timeToReport);
+    if (hdebug){
+      Serial.println(history[writePointer],16);
+    }
     writePointer++;
-    if (writePointer >= HIST_MAX){
+    if (writePointer >= historySize){
       writePointer=0;
       hasWrapped=true;
     }
@@ -98,10 +103,10 @@ class History{
     //normally we should have exactly 1 entry we write
     //but if the loop gets heavily delayed, more time could have elapsed
     //in this case we potentially simply write the same values multiple times (except for the on time)
-    int numEntries=lastWriteTime?(timestamp-lastWriteTime)/TIME_INTERVAL:1;
+    int numEntries=lastWriteTime?(timestamp-lastWriteTime)/timeInterval:1;
     if (numEntries < 1) return; //should not happen...
     int voltage=0;
-    if (victron-> valuesValid()) voltage=victron->getInfo()->voltage/100;
+    if (victron-> valuesValid()) voltage=victron->getInfo()->voltage;
     Controller::State state=controller->getState();
     unsigned long currentOnTime=controller->getCumulativeOnTime();
     uint16_t reportTime=onTimeToReport(currentOnTime,reportedOnTime)/numEntries;
@@ -113,27 +118,41 @@ class History{
 
   
   public:
-  History(VictronReceiver *victron,Controller * controller){
+  History(int historySize,int timeInterval,VictronReceiver *victron,Controller * controller){
     this->controller=controller;
     this->victron=victron;
+    this->historySize=historySize;
+    this->history=new uint16_t[historySize];
+    this->timeInterval=timeInterval;
+    reportedOnTime=onTimeToReport(controller->getCumulativeOnTime(),0);
+  }
+  ~History(){
+    delete [] history;
+    history=NULL;
+  }
+  int getSize(){
+    return historySize;
+  }
+  int getInterval(){
+    return timeInterval;
   }
   void loop(){
     unsigned long now=TimeBase::timeSeconds();
-    if (lastWriteTime == 0 || (now-lastWriteTime) >= TIME_INTERVAL){
+    if (lastWriteTime == 0 || (now-lastWriteTime) >= timeInterval){
       addHistory(now);
       lastWriteTime=now;
     }
   }
   int numEntries(){
     if (! hasWrapped) return writePointer;
-    return HIST_MAX;
+    return historySize;
   }
   int lastWrittenEntry(){
     if (! hasWrapped){
       return writePointer-1;
     }
     if (writePointer > 0) return writePointer-1;
-    return HIST_MAX-1;
+    return historySize-1;
   }
   void writeHistory(Receiver *out){
     int count=numEntries();
@@ -144,6 +163,12 @@ class History{
     out->sendSerial("TS=");
     unsigned long now=TimeBase::timeSeconds();
     out->sendSerial(ltoa(now,buf,10),true);
+    out->sendSerial("HS=");
+    out->sendSerial(ltoa(historySize,buf,10),true);
+    out->sendSerial("HI=");
+    out->sendSerial(ltoa(timeInterval,buf,10),true);
+    out->sendSerial("NE=");
+    out->sendSerial(ltoa(numEntries(),buf,10),true);
     unsigned long diff=now-lastWriteTime;
     while (count >0){
       uint16_t entry=history[current];
@@ -155,9 +180,9 @@ class History{
       out->sendSerial(Controller::statusToString(stateFromEntry(entry)));
       out->sendSerial(",");
       out->sendSerial(ltoa(secondsFromEntry(entry),buf,10),true);
-      diff+=TIME_INTERVAL;
+      diff+=timeInterval;
       current-=1;
-      if (current < 0) current=HIST_MAX-1;
+      if (current < 0) current=historySize-1;
       count--;
     }
   }
