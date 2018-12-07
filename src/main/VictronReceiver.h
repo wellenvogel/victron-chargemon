@@ -145,33 +145,30 @@ class VictronReceiver : public Callback{
   }
   void writeStatus(Receiver *out){
     long current=TimeBase::timeSeconds();
-    char buf[10];
     if ((info.lastVoltage+MAX_AGE) >= current){
       out->sendSerial("V=");
-      char buf[10];
-      out->sendSerial(ltoa(info.voltage,buf,10),true); 
+      out->sendSerial(info.voltage,true); 
     }
     else{
       out->sendSerial("V=##",true);
     }
     if ((info.lastPvoltage+MAX_AGE) >= current){
       out->sendSerial("VPV=");
-      out->sendSerial(ltoa(info.pVoltage,buf,10),true); 
+      out->sendSerial(info.pVoltage,true); 
     }
     else{
       out->sendSerial("VPV=##",true);
     }
     if ((info.lastPpower+MAX_AGE) >= current){
       out->sendSerial("PPV=");
-      out->sendSerial(ltoa(info.pPower,buf,10),true); 
+      out->sendSerial(info.pPower,true); 
     }
     else{
       out->sendSerial("PPV=##",true);
     }
     if ((info.lastBcurrent+MAX_AGE) >= current){
       out->sendSerial("I=");
-      char buf[10];
-      out->sendSerial(ltoa(info.bCurrent,buf,10),true); 
+      out->sendSerial(info.bCurrent,true); 
     }
     else{
       out->sendSerial("I=##",true);

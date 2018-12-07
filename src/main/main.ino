@@ -66,10 +66,24 @@ void handleSerialLine(const char *receivedData) {
     }
     return;
   }
-  if (strcasecmp(tok, "HIST") == 0) {
+  if (strcasecmp(tok, "HISTORY") == 0) {
     receiver->sendSerial("##HISTORY",true);
     if (history) history->writeHistory(receiver);
     receiver->sendSerial("#END",true);
+    return;
+  }
+  if (strcasecmp(tok, "TESTON") == 0) {
+    receiver->sendSerial("##TESTON",true);
+    if (Settings::getCurrentValue(SETTINGS_ON_TIME) > 0) controller->changeState(Controller::TestOn);
+    printStatus();
+    return;  
+  }
+  if (strcasecmp(tok,"TESTOFF")==0){
+    receiver->sendSerial("##TESTOFF",true);
+    if (controller->getState()==Controller::TestOn){
+      controller->changeState(Controller::Init);
+      printStatus();
+    }
     return;
   }
  
@@ -133,7 +147,10 @@ void loop() {
     ||
     (history && (nSize != history->getSize() || nInterval != history->getInterval()))
     ){
-      receiver->sendSerial("#RESETHISTORY");
+      receiver->sendSerial("#RESETHISTORY, size=");
+      receiver->sendSerial(nSize);
+      receiver->sendSerial(", interval=");
+      receiver->sendSerial(nInterval,true);
       if (history){
         delete history;
         history=NULL;

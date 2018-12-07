@@ -54,7 +54,11 @@ class Receiver{
     hasOverflow=false;
     return rt;
   }
-  
+
+  void sendSerial(int v,bool nl=false){
+    char buf[10];
+    sendSerial(ltoa(v,buf,10),nl);
+  }
 
   virtual void sendSerial(const char * txt, bool nl=false)=0;
  

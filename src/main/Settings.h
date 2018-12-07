@@ -16,6 +16,7 @@
 #define SETTINGS_STATUS_INTERVAL  "StatusInterval"
 #define SETTINGS_HISTORY_SIZE     "HistorySize"
 #define SETTINGS_HISTORY_INTERVAL "HistoryInterval"
+#define SETTINGS_ON_TIME          "TestOnTime"
 
 #define NUMSETTINGS (sizeof(settings)/sizeof(SettingItem))
 class Settings{
@@ -36,7 +37,7 @@ class Settings{
       this->maxValue=maxValue;
     }
   } ;
-  static const SettingItem settings[9]; //keep this consistent with the initializer
+  static const SettingItem settings[10]; //keep this consistent with the initializer
  
   static bool validIndex(byte idx){
     if (idx < 0 || idx >= NUMSETTINGS) return false;
@@ -102,8 +103,7 @@ class Settings{
     for (byte idx =0 ;idx < NUMSETTINGS;idx++){
       out->sendSerial(settings[idx].name);
       out->sendSerial("=");
-      char buf[10];
-      out->sendSerial(ltoa(getCurrentValue(idx),buf,10),true);
+      out->sendSerial(getCurrentValue(idx),true);
     }
     out->sendSerial("#END",true);
     
@@ -119,8 +119,9 @@ const Settings::SettingItem Settings::settings[]={
   {SETTINGS_OFF_VOLTAGE,11800},           //voltage(mv) if below - immediately switch off
   {SETTINGS_MAX_TIME,120},                //max time (in minutes) we keep on before we wait for float again
   {SETTINGS_STATUS_INTERVAL,5},           //time in s between status reports
-  {SETTINGS_HISTORY_SIZE,360,10,480},     //number of entries in history
-  {SETTINGS_HISTORY_INTERVAL,480,3,3600}  //interval in seconds between history entries
+  {SETTINGS_HISTORY_SIZE,360,10,400},     //number of entries in history, be carefull with the max. - memory exhausted...
+  {SETTINGS_HISTORY_INTERVAL,480,3,3600}, //interval in seconds between history entries
+  {SETTINGS_ON_TIME,300,0,1800}           //time to stay on for testing
   };
 
 #endif

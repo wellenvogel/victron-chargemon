@@ -14,7 +14,7 @@
  * 3 Bit on time in 1/7 time units
  */
 
-int hdebug=1;
+int hdebug=0;
 
 class History{
   private:
@@ -159,31 +159,37 @@ class History{
     if (! count) return;
     int current=lastWrittenEntry();
     if (current < 0) return;
-    char buf[10];
     out->sendSerial("TS=");
     unsigned long now=TimeBase::timeSeconds();
-    out->sendSerial(ltoa(now,buf,10),true);
+    out->sendSerial(now,true);
     out->sendSerial("HS=");
-    out->sendSerial(ltoa(historySize,buf,10),true);
+    out->sendSerial(historySize,true);
     out->sendSerial("HI=");
-    out->sendSerial(ltoa(timeInterval,buf,10),true);
+    out->sendSerial(timeInterval,true);
     out->sendSerial("NE=");
-    out->sendSerial(ltoa(numEntries(),buf,10),true);
+    out->sendSerial(numEntries(),true);
     unsigned long diff=now-lastWriteTime;
+    unsigned long average=0;
     while (count >0){
       uint16_t entry=history[current];
       out->sendSerial("TE=");
-      out->sendSerial(ltoa(diff,buf,10));
+      out->sendSerial(diff);
       out->sendSerial(",");
-      out->sendSerial(ltoa(voltageFromEntry(entry),buf,10));
+      out->sendSerial(voltageFromEntry(entry));
       out->sendSerial(",");
       out->sendSerial(Controller::statusToString(stateFromEntry(entry)));
       out->sendSerial(",");
-      out->sendSerial(ltoa(secondsFromEntry(entry),buf,10),true);
+      unsigned long seconds=secondsFromEntry(entry);
+      average+=seconds;
+      out->sendSerial(seconds,true);
       diff+=timeInterval;
       current-=1;
       if (current < 0) current=historySize-1;
       count--;
+    }
+    if (numEntries()){
+      out->sendSerial("AV=");
+      out->sendSerial(average*100/(numEntries()*timeInterval),true);
     }
   }
   

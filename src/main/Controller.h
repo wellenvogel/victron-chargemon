@@ -17,6 +17,7 @@ class Controller{
     FloatTime,  //wait for the minimal float time (FloatTime), output off
     OnMinTime,  //output on, wait for MinTime to pass
     OnExtended, //still on after min time if the voltage exceeds KeepOnVoltage
+    TestOn      //switch on for SETTINGS_TEST_TIME
   } State;
 
   Controller(VictronReceiver *receiver){
@@ -28,6 +29,7 @@ class Controller{
     settingsMaxTime=Settings::itemIndex(SETTINGS_MAX_TIME);
     settingsOnVoltage=Settings::itemIndex(SETTINGS_KEEP_VOLTAGE);
     settingsOffVoltage=Settings::itemIndex(SETTINGS_OFF_VOLTAGE);
+    settingsOnTime=Settings::itemIndex(SETTINGS_ON_TIME);
   }
 
   private:
@@ -40,9 +42,12 @@ class Controller{
   byte settingsMaxTime=-1;
   byte settingsOnVoltage=-1;
   byte settingsOffVoltage=-1;
+  byte settingsOnTime=-1;
+  unsigned long cumulativeOnTime=0;
   bool statusToOutput(State state){
     if (state == OnMinTime) return true;
     if (state == OnExtended) return true;
+    if (state == TestOn) return true;
     return false;
   }
 
@@ -51,14 +56,6 @@ class Controller{
     digitalWrite(PORT,onOff?PORT_ON:PORT_OFF);
   }
 
-  bool changeState(State newState, const char *info=NULL){
-    if (state != newState){
-      state=newState;
-      lastChange=TimeBase::timeSeconds();
-      //TODO: notify
-    }
-    setOutput();
-  }
 
   bool checkElapsed(long intervalMinutes){
     long current=TimeBase::timeSeconds();
@@ -79,13 +76,32 @@ class Controller{
   static const char * statusToString(State state){
     switch(state){
       case Init: return "Init";
-      case WaitFloat: return "WaitFloat";
-      case OnMinTime: return "OnMinTime";
+      case WaitFloat:  return "WaitFloat";
+      case OnMinTime:  return "OnMinTime";
       case OnExtended: return "OnExtended";
+      case TestOn:     return "TestOn";
     }
     return "Unknown";
   }
+  bool changeState(State newState, const char *info=NULL){
+    if (state != newState){
+      unsigned long now=TimeBase::timeSeconds();
+      if (statusToOutput(state)){
+        cumulativeOnTime+=now-lastChange;
+      }
+      state=newState;
+      lastChange=now;
+      //TODO: notify
+    }
+    setOutput();
+  }
   void loop(){
+    if (state == TestOn){
+      if (checkElapsedSetting(settingsOnTime)){
+        changeState(Init);
+      }
+      return;
+    }
     bool receiverOk=receiver->valuesValid();
     if (! receiverOk){
       changeState(Init,"Disconnected");
@@ -147,8 +163,12 @@ class Controller{
   }
 
   unsigned long getCumulativeOnTime(){
-    //TODO
-    return TimeBase::timeSeconds()/2;
+    if (statusToOutput(state)){
+      return cumulativeOnTime + TimeBase::timeSeconds()-lastChange;
+    }
+    else {
+      return cumulativeOnTime;
+    }
   }
 
   const State getState(){
