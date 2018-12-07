@@ -116,11 +116,11 @@ const Settings::SettingItem Settings::settings[]={
   {SETTINGS_FLOAT_TIME,10},               //float time in minutes before switching on
   {SETTINGS_MIN_TIME,30},                 //minimal on time (minutes) (except for emergency off)
   {SETTINGS_KEEP_VOLTAGE,12500},          //voltage(mv) if battery is above - keep on
-  {SETTINGS_OFF_VOLTAGE,11800},           //voltage(mv) if below - immediately switch off
+  {SETTINGS_OFF_VOLTAGE,11800},           //voltage(mv) if below - immediately switch off (emergency)
   {SETTINGS_MAX_TIME,120},                //max time (in minutes) we keep on before we wait for float again
   {SETTINGS_STATUS_INTERVAL,5},           //time in s between status reports
-  {SETTINGS_HISTORY_SIZE,360,10,400},     //number of entries in history, be carefull with the max. - memory exhausted...
-  {SETTINGS_HISTORY_INTERVAL,480,3,3600}, //interval in seconds between history entries
+  {SETTINGS_HISTORY_SIZE,180,10,400},     //number of entries in history, be carefull with the max. - memory exhausted... - default for 24h
+  {SETTINGS_HISTORY_INTERVAL,480,3,3600}, //interval in seconds between history entries - default 8 minutes
   {SETTINGS_ON_TIME,5,0,30}               //time to stay on for testing (minutes)
   };
 
