@@ -19,6 +19,12 @@ class TimeBase{
     current=(current >> 10) | (overflowCounter << 24);
     return current;
   }
+  static unsigned long initial(){
+    return (unsigned long)1 << 24; //initial value of overflow counter
+  }
+  static unsigned long secondsSinceStart(){
+    return timeSeconds()-initial(); 
+  }
 };
 
 unsigned long TimeBase::overflowCounter=1; //start at a high value to set all diffs to invalid...

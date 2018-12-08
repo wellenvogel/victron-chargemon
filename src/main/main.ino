@@ -26,6 +26,8 @@ void printStatus(){
   receiver->sendSerial("#STATUS",true);
   receiver->sendSerial("Connection=");
   receiver->sendSerial(valuesValid?"OK":"FAIL",true);
+  receiver->sendSerial("Time=");
+  receiver->sendSeriali(TimeBase::secondsSinceStart(),true);
   victron->writeStatus(receiver);
   controller->writeStatus(receiver);
   receiver->sendSerial("#END",true);

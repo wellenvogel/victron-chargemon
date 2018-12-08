@@ -4,7 +4,7 @@
 #define SERIAL_MAXSIZE 32
 class SerialReceiver: public Receiver{
   public:
-  SerialReceiver(Callback *cb):Receiver(cb,SERIAL_MAXSIZE){
+  SerialReceiver(Callback *cb):Receiver(cb,SERIAL_MAXSIZE,1){
   }
   void init(int baud){
     Serial.begin(baud);
