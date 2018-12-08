@@ -2,7 +2,7 @@
 #define TIMEBASE_H
 #include <Arduino.h>
 //a number of bits to shift the time to speed up
-#define DEBUG_SPEED_UP 3 
+#define DEBUG_SPEED_UP 4 
 //32 bit seconds - about 136 years
 class TimeBase{
   private:
