@@ -1,0 +1,4 @@
+#10 minutes absorption
+600;mppt2-float.log;re.sub("^CS .*","CS 4",line)
+#15 minutes float
+900;mppt2-float.log;re.sub("^CS .*","CS 5",line)
