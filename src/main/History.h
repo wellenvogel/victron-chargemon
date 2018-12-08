@@ -20,10 +20,12 @@ class History{
   private:
   uint16_t *history=NULL;
   static const uint16_t VOLTAGE_MASK=0xff;
-  static const uint16_t  VOLTAGE_SHIFT=8;
+  static const uint16_t VOLTAGE_SHIFT=8;
   static const uint16_t STATE_MASK=0x07;
-  static const uint16_t  STATE_SHIFT=5;
+  static const uint16_t STATE_SHIFT=5;
   static const uint16_t ONTIME_MASK=0x07;
+  static const uint16_t VSTATE_MASK=0x03;
+  static const uint16_t VSTATE_SHIFT=3;
   int writePointer=0;
   bool hasWrapped=false;
   int timeInterval=0;
@@ -46,7 +48,7 @@ class History{
     return ((unsigned long)reportTime*(unsigned long)timeInterval)/(unsigned long)7;
   }
 
-  uint16_t dataToEntry(int voltage,Controller::State state,uint16_t reportTime){
+  uint16_t dataToEntry(int voltage,Controller::State state,VictronReceiver::SimplifiedState victronState,uint16_t reportTime){
     uint16_t rt=0;
     voltage=voltage/100;
     if (voltage <= 60) voltage=0;
@@ -55,6 +57,7 @@ class History{
     if (reportTime > 7) reportTime=7;
     rt|=(uint16_t)(voltage & VOLTAGE_MASK)<<VOLTAGE_SHIFT;
     rt|=((uint16_t)state & STATE_MASK) << STATE_SHIFT;
+    rt|=((uint16_t)victronState & VSTATE_MASK) << VSTATE_SHIFT;
     rt|=reportTime & ONTIME_MASK;
     return rt;
   }
@@ -75,8 +78,13 @@ class History{
     return reportTimeToOnTime(entry);
   }
 
+  VictronReceiver::SimplifiedState vstateFromEntry(uint16_t entry){
+    entry=(entry >> VSTATE_SHIFT) & VSTATE_MASK;
+    return entry;
+  }
+
    
-  bool writeEntry(int voltage,Controller::State state,uint16_t timeToReport){
+  bool writeEntry(int voltage,Controller::State state,VictronReceiver::SimplifiedState victronState,uint16_t timeToReport){
     if(hdebug){
       Serial.print("##write entry: ");
       Serial.print(writePointer,10);
@@ -88,7 +96,7 @@ class History{
       Serial.print(timeToReport,10);
       Serial.print(",");
     }
-    history[writePointer]=dataToEntry(voltage,state,timeToReport);
+    history[writePointer]=dataToEntry(voltage,state,victronState,timeToReport);
     if (hdebug){
       Serial.println(history[writePointer],16);
     }
@@ -106,12 +114,16 @@ class History{
     int numEntries=lastWriteTime?(timestamp-lastWriteTime)/timeInterval:1;
     if (numEntries < 1) return; //should not happen...
     int voltage=0;
-    if (victron-> valuesValid()) voltage=victron->getInfo()->voltage;
+    VictronReceiver::SimplifiedState vstate=VictronReceiver::SOther;
+    if (victron-> valuesValid()) {
+      voltage=victron->getInfo()->voltage;
+      vstate=VictronReceiver::simplifyState(victron->getInfo()->state);
+    }
     Controller::State state=controller->getState();
     unsigned long currentOnTime=controller->getCumulativeOnTime();
     uint16_t reportTime=onTimeToReport(currentOnTime,reportedOnTime)/numEntries;
     for (int i=0;i<numEntries;i++){
-      writeEntry(voltage,state,reportTime);
+      writeEntry(voltage,state,vstate,reportTime);
       reportedOnTime+=reportTime;
     }
   }
@@ -182,6 +194,8 @@ class History{
       out->sendSerial(voltageFromEntry(entry));
       out->sendSerial(",");
       out->sendSerial(Controller::statusToString(stateFromEntry(entry)));
+      out->sendSerial(",");
+      out->sendSerial(VictronReceiver::simplifiedStateToName(vstateFromEntry(entry)));
       out->sendSerial(",");
       unsigned long seconds=secondsFromEntry(entry);
       sum+=seconds;

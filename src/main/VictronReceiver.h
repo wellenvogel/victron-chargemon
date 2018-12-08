@@ -25,6 +25,14 @@ class VictronReceiver : public Callback{
     Absorption=4,
     Float=5
   }ChargerState;
+
+  //a state that fits into 2 bit for the history
+  typedef enum{
+    SOther=0,
+    SBulk=1,
+    SAbsorption=2,
+    SFloat=3
+  }SimplifiedState;
   typedef struct{
     unsigned long lastState=0;
     ChargerState state=Off;
@@ -49,10 +57,24 @@ class VictronReceiver : public Callback{
    if (! isValidState(state)) return "UNKNOWN";
     return stateNames[state];
   }
+
+ 
   public:
   VictronReceiver(Receiver *r){
     receiver=r;
     receiver->setCallback(this);
+  }
+
+  static const char *simplifiedStateToName(SimplifiedState state){
+    if (state == SOther){
+      return "Other";
+    }
+    return stateToName(state+2);
+  }
+
+  static SimplifiedState simplifyState(ChargerState state){
+    if (state > 2 && state <= Float) return state-2;
+    return SOther;
   }
   static boolean isValidValue(unsigned long valueTime,unsigned long currentTime){
     return (valueTime+MAX_AGE) >= currentTime;
