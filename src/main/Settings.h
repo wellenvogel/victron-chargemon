@@ -98,9 +98,12 @@ class Settings{
     return true;
   }
 
-  static void printSettings(Receiver* out){
+  static void printSettings(Receiver* out, Callback * cb=NULL){
     out->sendSerial("#SETTINGS",true);
     for (byte idx =0 ;idx < NUMSETTINGS;idx++){
+      if (idx > 4 && (idx %5) == 0 && cb){
+        cb->callback(NULL);
+      }
       out->sendSerial(settings[idx].name);
       out->sendSerial("=");
       out->sendSerial(getCurrentValue(idx),true);
@@ -120,7 +123,7 @@ const Settings::SettingItem Settings::settings[]={
   {SETTINGS_MAX_TIME,120},                //max time (in minutes) we keep on before we wait for float again
   {SETTINGS_STATUS_INTERVAL,5},           //time in s between status reports
   {SETTINGS_HISTORY_SIZE,180,10,400},     //number of entries in history, be carefull with the max. - memory exhausted... - default for 24h
-  {SETTINGS_HISTORY_INTERVAL,480,3,3600}, //interval in seconds between history entries - default 8 minutes
+  {SETTINGS_HISTORY_INTERVAL,480,2,3600}, //interval in seconds between history entries - default 8 minutes
   {SETTINGS_ON_TIME,5,0,30}               //time to stay on for testing (minutes)
   };
 

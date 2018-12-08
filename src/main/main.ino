@@ -32,6 +32,20 @@ void printStatus(){
   controller->writeStatus(receiver);
   receiver->sendSerial("#END",true);
 }
+
+/**
+ * a handler for long lasting outputs
+ * like history to ensure that we do not run into overflow 
+ * for the receiver
+ */
+class IntermediateHandler : public Callback{
+  virtual void callback(const char * data){
+    victron->loop();
+  }
+};
+
+IntermediateHandler * intermediateHandler=new IntermediateHandler();
+
 void handleSerialLine(const char *receivedData) {
   char * tok = strtok(receivedData, DELIMTER);
   if (! tok) return;
@@ -60,13 +74,13 @@ void handleSerialLine(const char *receivedData) {
     }
     else{
       receiver->sendSerial("##OK",true);
-      Settings::printSettings(receiver);
+      Settings::printSettings(receiver,intermediateHandler);
     }
     return;
   }
   if (strcasecmp(tok, "HISTORY") == 0) {
     receiver->sendSerial("##HISTORY",true);
-    if (history) history->writeHistory(receiver);
+    if (history) history->writeHistory(receiver,intermediateHandler);
     receiver->sendSerial("#END",true);
     return;
   }

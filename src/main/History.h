@@ -154,23 +154,27 @@ class History{
     if (writePointer > 0) return writePointer-1;
     return historySize-1;
   }
-  void writeHistory(Receiver *out){
+  void writeHistory(Receiver *out, Callback *callback=NULL){
     int count=numEntries();
     if (! count) return;
     int current=lastWrittenEntry();
     if (current < 0) return;
     out->sendSerial("TS=");
-    unsigned long now=TimeBase::timeSeconds();
-    out->sendSerial(now,true);
+    unsigned long ts=(unsigned long)count*(unsigned long)timeInterval;;
+    out->sendSerial(ts,true);
     out->sendSerial("HS=");
     out->sendSerial(historySize,true);
     out->sendSerial("HI=");
     out->sendSerial(timeInterval,true);
     out->sendSerial("NE=");
     out->sendSerial(numEntries(),true);
-    unsigned long diff=now-lastWriteTime;
+    unsigned long diff=TimeBase::timeSeconds()-lastWriteTime;
     unsigned long sum=0;
     while (count >0){
+      if ((count % 5) == 0 && callback){
+        //allow to do some actions in between
+        callback->callback(NULL);
+      }
       uint16_t entry=history[current];
       out->sendSerial("TE=");
       out->sendSerial(diff);
