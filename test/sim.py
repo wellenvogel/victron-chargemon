@@ -82,12 +82,13 @@ def runSim(fname,speedUp,parameters):
     return 0
         
 def usage(name):
-  print "usage: %s [-s speedup] [-b baud] [-t interval] device simfile" % (name)
+  print "usage: %s [-s speedup] [-b baud] [-t interval] [-l loops] device simfile" % (name)
 
 def mainHandler(argv):
-  opts,args=getopt.getopt(argv[1:],"hs:b:t:",[])
+  opts,args=getopt.getopt(argv[1:],"hs:b:t:l:",[])
   speedup=1
   baud=9600
+  loops=1
   parameters = Parameters()
   for opt,arg in opts:
     if opt == '-h':
@@ -99,6 +100,8 @@ def mainHandler(argv):
       baud=int(arg)
     elif opt == '-t':
       parameters.speed=float(arg)
+    elif opt == '-l':
+      loops=int(arg)
   if len(args) != 2:
     usage(argv[0])
     return -1
@@ -115,7 +118,13 @@ def mainHandler(argv):
 
 
   parameters.outfile=serout
-  return runSim(simName,speedup,parameters)
+  while loops > 0:
+    rt=runSim(simName,speedup,parameters)
+    if rt != 0:
+      print "simulation stopping"
+      return rt
+    loops=loops-1
+
 
 
 
