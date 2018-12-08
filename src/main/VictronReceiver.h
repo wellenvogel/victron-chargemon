@@ -16,7 +16,7 @@ static char* stateNames[]={
 };
 class VictronReceiver : public Callback{
   public:
-  static const int MAX_AGE=30;
+  static const int MAX_AGE=30<< DEBUG_SPEED_UP;
   typedef enum{
     Off=0,
     LowPower=1,
