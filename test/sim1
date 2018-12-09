@@ -1,6 +1,19 @@
+#normal scenario: absorption, float, bulk till max time
 #10 minutes absorption, voltage from 12.2...13.7
 600;mppt2-float.log;re.sub("^CS .*","CS 4",line);re.sub("^V .*","V %d"%(12200+1500*percent/100),line)
 #15 minutes float, Voltage at 13.6
 900;mppt2-float.log;re.sub("^CS .*","CS 5",line);re.sub("^V .*","V 13600",line)
-#60 minutes bulk, voltage from 13.6...12.0
-3600;mppt2-float.log;re.sub("^CS .*","CS 3",line);re.sub("^V .*","V %d"%(13600-1600*percent/100),line)
+#160 minutes bulk, voltage from 13.6...12.7
+9600;mppt2-float.log;re.sub("^CS .*","CS 3",line);re.sub("^V .*","V %d"%(13600-900*percent/100),line)
+#30 minutes bulk, voltage from 12.7...13.4
+1800;mppt2-float.log;re.sub("^CS .*","CS 3",line);re.sub("^V .*","V %d"%(12700+700*percent/100),line)
+#10 minutes absorption, voltage from 13.4...13.6
+1800;mppt2-float.log;re.sub("^CS .*","CS 4",line);re.sub("^V .*","V %d"%(13400+200*percent/100),line)
+#shut off during extended
+#15 minutes float, Voltage at 13.6
+900;mppt2-float.log;re.sub("^CS .*","CS 5",line);re.sub("^V .*","V 13600",line)
+#30 minutes bulk, voltage from 13.6...12.7
+1800;mppt2-float.log;re.sub("^CS .*","CS 3",line);re.sub("^V .*","V %d"%(13600-900*percent/100),line)
+#30 minutes bulk, voltage from 12.7...12.2
+1800;mppt2-float.log;re.sub("^CS .*","CS 3",line);re.sub("^V .*","V %d"%(12700-700*percent/100),line)
+
