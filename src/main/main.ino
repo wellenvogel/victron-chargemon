@@ -19,6 +19,7 @@ long lastout=0;
 
 byte historySizeIndex=-1;
 byte historyIntervalIndex=-1;
+byte speedUpIndex=-1;
 
 const char DELIMTER[] = " ";
 boolean valuesValid=false;
@@ -122,6 +123,8 @@ void setup() {
   if (rt){
     receiver->sendSerial("##INITIALIZED SETTINGS",true);
   }
+  speedUpIndex=Settings::itemIndex(SETTINGS_SPEED_UP);
+  TimeBase::setDebugSpeedUp(Settings::getCurrentValue(speedUpIndex));
   Settings::printSettings(receiver);
   historyIntervalIndex=Settings::itemIndex(SETTINGS_HISTORY_INTERVAL);
   historySizeIndex=Settings::itemIndex(SETTINGS_HISTORY_SIZE);
@@ -152,12 +155,22 @@ void loop() {
     receiver->sendSerial("#STATUSCHANGE RECEIVER",true);
     printStatus();
   }
+  bool resetHistory=false;
+  uint8_t speedUp=Settings::getCurrentValue(speedUpIndex);
+  if ( speedUp != TimeBase::getDebugSpeedUp()){
+    receiver->sendSerial("#SPEEDUP CHANGE=");
+    receiver->sendSeriali(speedUp,true);
+    TimeBase::setDebugSpeedUp(speedUp);
+    resetHistory=true;
+  }
   int nSize=Settings::getCurrentValue(historySizeIndex);
   int nInterval=Settings::getCurrentValue(historyIntervalIndex);
   if (
     (history == NULL && nSize > 0 && nInterval > 0)
     ||
     (history && (nSize != history->getSize() || nInterval != history->getInterval()))
+    ||
+    resetHistory
     ){
       receiver->sendSerial("#RESETHISTORY, size=");
       receiver->sendSeriali(nSize);

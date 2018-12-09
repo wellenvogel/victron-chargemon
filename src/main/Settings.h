@@ -17,6 +17,7 @@
 #define SETTINGS_HISTORY_SIZE     "HistorySize"
 #define SETTINGS_HISTORY_INTERVAL "HistoryInterval"
 #define SETTINGS_ON_TIME          "TestOnTime"
+#define SETTINGS_SPEED_UP         "DebugTimeShift"
 
 #define NUMSETTINGS (sizeof(settings)/sizeof(SettingItem))
 class Settings{
@@ -37,7 +38,7 @@ class Settings{
       this->maxValue=maxValue;
     }
   } ;
-  static const SettingItem settings[10]; //keep this consistent with the initializer
+  static const SettingItem settings[11]; //keep this consistent with the initializer
  
   static bool validIndex(byte idx){
     if (idx < 0 || idx >= NUMSETTINGS) return false;
@@ -124,7 +125,8 @@ const Settings::SettingItem Settings::settings[]={
   {SETTINGS_STATUS_INTERVAL,5},           //time in s between status reports
   {SETTINGS_HISTORY_SIZE,180,10,400},     //number of entries in history, be carefull with the max. - memory exhausted... - default for 24h
   {SETTINGS_HISTORY_INTERVAL,480,2,3600}, //interval in seconds between history entries - default 8 minutes
-  {SETTINGS_ON_TIME,5,0,30}               //time to stay on for testing (minutes)
+  {SETTINGS_ON_TIME,5,0,30},              //time to stay on for testing (minutes)
+  {SETTINGS_SPEED_UP,0,0,8}               //speed up handling by 2^thisValue
   };
 
 #endif

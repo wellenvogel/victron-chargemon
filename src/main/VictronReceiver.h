@@ -16,7 +16,7 @@ static char* stateNames[]={
 };
 class VictronReceiver : public Callback{
   public:
-  static const int MAX_AGE=30<< DEBUG_SPEED_UP;
+  static const int MAX_AGE=30;
   typedef enum{
     Off=0,
     LowPower=1,
@@ -77,7 +77,7 @@ class VictronReceiver : public Callback{
     return SOther;
   }
   static boolean isValidValue(unsigned long valueTime,unsigned long currentTime){
-    return (valueTime+MAX_AGE) >= currentTime;
+    return (valueTime+(MAX_AGE<<TimeBase::getDebugSpeedUp())) >= currentTime;
   }
 
   boolean valuesValid(){
@@ -167,35 +167,35 @@ class VictronReceiver : public Callback{
   }
   void writeStatus(Receiver *out){
     long current=TimeBase::timeSeconds();
-    if ((info.lastVoltage+MAX_AGE) >= current){
+    if ((info.lastVoltage+(MAX_AGE<<TimeBase::getDebugSpeedUp())) >= current){
       out->sendSerial("V=");
       out->sendSerial(info.voltage,true); 
     }
     else{
       out->sendSerial("V=##",true);
     }
-    if ((info.lastPvoltage+MAX_AGE) >= current){
+    if ((info.lastPvoltage+(MAX_AGE<<TimeBase::getDebugSpeedUp())) >= current){
       out->sendSerial("VPV=");
       out->sendSerial(info.pVoltage,true); 
     }
     else{
       out->sendSerial("VPV=##",true);
     }
-    if ((info.lastPpower+MAX_AGE) >= current){
+    if ((info.lastPpower+(MAX_AGE<<TimeBase::getDebugSpeedUp())) >= current){
       out->sendSerial("PPV=");
       out->sendSerial(info.pPower,true); 
     }
     else{
       out->sendSerial("PPV=##",true);
     }
-    if ((info.lastBcurrent+MAX_AGE) >= current){
+    if ((info.lastBcurrent+(MAX_AGE<<TimeBase::getDebugSpeedUp())) >= current){
       out->sendSerial("I=");
       out->sendSerial(info.bCurrent,true); 
     }
     else{
       out->sendSerial("I=##",true);
     }
-    if ((info.lastState+MAX_AGE) >= current){
+    if ((info.lastState+(MAX_AGE<<TimeBase::getDebugSpeedUp())) >= current){
       out->sendSerial("CS=");
       out->sendSerial(stateToName(info.state),true); 
     }
