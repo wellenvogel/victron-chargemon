@@ -30,6 +30,7 @@ class Controller{
     settingsOnVoltage=Settings::itemIndex(SETTINGS_KEEP_VOLTAGE);
     settingsOffVoltage=Settings::itemIndex(SETTINGS_OFF_VOLTAGE);
     settingsOnTime=Settings::itemIndex(SETTINGS_ON_TIME);
+    settingsEnabled=Settings::itemIndex(SETTINGS_ENABLED);
   }
 
   private:
@@ -43,6 +44,7 @@ class Controller{
   byte settingsOnVoltage=-1;
   byte settingsOffVoltage=-1;
   byte settingsOnTime=-1;
+  byte settingsEnabled=-1;
   unsigned long cumulativeOnTime=0;
   bool statusToOutput(State state){
     if (state == OnMinTime) return true;
@@ -96,6 +98,10 @@ class Controller{
     setOutput();
   }
   void loop(){
+    if (Settings::getCurrentValue(settingsEnabled) == 0){
+      changeState(Init);
+      return;
+    }
     if (state == TestOn){
       if (checkElapsedSetting(settingsOnTime)){
         changeState(Init);
