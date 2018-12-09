@@ -57,9 +57,9 @@ class Controller{
   }
 
 
-  bool checkElapsed(long intervalMinutes){
+  bool checkElapsed(long intervalSeconds){
     long current=TimeBase::timeSeconds();
-    if ( (current-lastChange) >= (intervalMinutes*60)){
+    if ( (current-lastChange) >= intervalSeconds){
       return true;
     }
     return false;
