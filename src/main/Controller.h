@@ -9,8 +9,12 @@
 class Controller{
   public:
   const int PORT=4;
+  const int LED_PORT=5;
   const int PORT_ON=LOW;
   const int PORT_OFF=HIGH;
+  const int LED_PORT_ON=HIGH;
+  const int LED_PORT_OFF=LOW;
+  const unsigned long BLINKTIME=800; //ms
   typedef enum{
     Init=0,
     WaitFloat,  //wait for the charger to enter float state, output off
@@ -20,10 +24,18 @@ class Controller{
     TestOn      //switch on for SETTINGS_TEST_TIME
   } State;
 
+  typedef enum {
+    Off=0,
+    Blink=1,
+    On=2
+  } LedState;
+
   Controller(VictronReceiver *receiver){
     this->receiver=receiver;
     pinMode(PORT,OUTPUT);
     digitalWrite(PORT,PORT_OFF);
+    pinMode(LED_PORT,OUTPUT);
+    digitalWrite(LED_PORT,LED_PORT_OFF);
     settingsFloatTime=Settings::itemIndex(SETTINGS_FLOAT_TIME);
     settingsMinTime=Settings::itemIndex(SETTINGS_MIN_TIME);
     settingsMaxTime=Settings::itemIndex(SETTINGS_MAX_TIME);
@@ -46,6 +58,7 @@ class Controller{
   byte settingsOnTime=-1;
   byte settingsEnabled=-1;
   unsigned long cumulativeOnTime=0;
+  unsigned long ledChange=0;
   bool statusToOutput(State state){
     if (state == OnMinTime) return true;
     if (state == OnExtended) return true;
@@ -53,9 +66,34 @@ class Controller{
     return false;
   }
 
+  LedState getLedState(){
+    if (statusToOutput(state)) return On;
+    if (! receiver->valuesValid()) return Off;
+    return Blink;
+  }
+
   void setOutput(){
     bool onOff=statusToOutput(state);
     digitalWrite(PORT,onOff?PORT_ON:PORT_OFF);
+  }
+
+  void setLed(){
+    switch (getLedState()){
+      case On:
+        digitalWrite(LED_PORT,LED_PORT_ON);
+        return;
+      case Off:
+        digitalWrite(LED_PORT,LED_PORT_OFF);
+        return;  
+      case Blink:
+        unsigned long now=millis();
+        if (now > (ledChange+BLINKTIME) || now < ledChange){
+          bool current=digitalRead(LED_PORT) == LED_PORT_ON;
+          digitalWrite(LED_PORT,current?LED_PORT_OFF:LED_PORT_ON);
+          ledChange=now;
+        }
+          
+    }
   }
 
 
@@ -98,6 +136,10 @@ class Controller{
     setOutput();
   }
   void loop(){
+    doLoop();
+    setLed();
+  }
+  void doLoop(){
     if (Settings::getCurrentValue(settingsEnabled) == 0){
       changeState(Init);
       return;
