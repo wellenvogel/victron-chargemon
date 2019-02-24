@@ -4,11 +4,23 @@ class Item:
     self.display=display
     self.unit=unit
     self.factor=factor
+  def isHistory(self):
+    return False
+
+class HistoryItem(Item):
+  def __init__(self,name,display,unit='',factor=None,isFirst=False,isLast=False,isMulti=False):
+    Item.__init__(self,name,display,unit,factor)
+    self.isHistory=True
+    self.isFirst=isFirst
+    self.isLast=isLast
+    self.isMulti=isMulti
+  def isHistory(self):
+    return True
 
 
 class CmDefines:
   STATUS=[
-    Item('Connection','Verbindung'),
+    Item('Connection','Connection'),
     Item('Time','Time since Start','s'),
     Item('V','Battery Voltage','V',factor=0.001),
     Item('VPV','Panel Voltage','V',factor=0.001),
@@ -32,9 +44,17 @@ class CmDefines:
     Item('TestOnTime','On Time for Test','s'),
     #Item('DebugTimeShift','Shift time for debug')
     ]
+  HISTORY=[
+    HistoryItem('TS','History Current',unit='s',isFirst=True),
+    HistoryItem('HS','History Size'),
+    HistoryItem('HI','History Interval','s'),
+    HistoryItem('NE','History Entries'),
+    HistoryItem('TE','History Value',isMulti=True),
+    HistoryItem('SU','Sum On Time',unit='s',isLast=True)
+  ]
   @classmethod
   def findDefinition(cls,name):
-    for define in cls.SETTINGS+cls.STATUS:
+    for define in cls.SETTINGS+cls.STATUS+cls.HISTORY:
       if name == define.name:
         return define
     return None

@@ -5,7 +5,7 @@ MAXAGE=30
 
 class CmReceivedItem:
   def __init__(self,definition,value):
-    self.definition=definition # type: Item
+    self.definition=definition # type: [Item, HistoryItem]
     self.value=value
     self.timestamp=time.time()
 
@@ -24,6 +24,8 @@ class CmStore:
   def __init__(self,maxage):
     self.maxage=maxage
     self.store={}
+    self.currentHistory={}
+    self.newHistory={}
 
   def __stillValid(self,item,now=time.time()):
     if item is None:
@@ -55,5 +57,18 @@ class CmStore:
     :return:
     """
     key=receivedItem.definition.name
-    self.store[key]=receivedItem
+    if receivedItem.definition.isHistory():
+      if receivedItem.definition.isFirst:
+        self.newHistory={}
+      if receivedItem.definition.isMulti:
+        if self.newHistory.get(key) is None:
+          self.newHistory[key]=[]
+        self.newHistory[key].append(receivedItem)
+      else:
+        self.newHistory[key]=receivedItem
+      if receivedItem.definition.isLast:
+        self.currentHistory=self.newHistory
+        self.newHistory={}
+    else:
+      self.store[key]=receivedItem
 

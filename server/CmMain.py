@@ -16,7 +16,7 @@ class CmMain:
       print "Serial State=%d"%(self.serial.state)
       for st in CmDefines.STATUS:
         v=self.store.getItem(st)
-        print "#%s=%s%s"%(st.name,v.getValue() if v is not None else '???',st.unit)
+        print "#%s=%s%s"%(st.display,v.getValue() if v is not None else '???',st.unit)
       if self.serial.isOpen():
         self.serial.sendCommand('status')
       time.sleep(5)
