@@ -4,13 +4,13 @@ class Item:
     self.display=display
     self.unit=unit
     self.factor=factor
+    self.isMulti=False
   def isHistory(self):
     return False
 
 class HistoryItem(Item):
   def __init__(self,name,display,unit='',factor=None,isFirst=False,isLast=False,isMulti=False):
     Item.__init__(self,name,display,unit,factor)
-    self.isHistory=True
     self.isFirst=isFirst
     self.isLast=isLast
     self.isMulti=isMulti

@@ -13,9 +13,9 @@ class CmSerial:
     OPEN=1
     STOPPED=2
     ERROR=3
-  def __init__(self,port,store,baud=9600):
+  def __init__(self,port,baud=9600):
     self.port=port
-    self.store=store # type: CmStore
+    self.store=None # type: CmStore
     self.baud=baud
     self.thread=threading.Thread(target=self.run)
     self.thread.setName('Serial %s'%(self.port))
@@ -42,9 +42,12 @@ class CmSerial:
     if sequence is not None and data.rstrip() == '#END':
       self.condition.acquire()
       self.runningSequence=None
+      self.store=None
       self.condition.release()
       return
     if self.runningSequence != sequence:
+      return
+    if self.store is None:
       return
     if data.startswith('#'):
       return
@@ -72,7 +75,7 @@ class CmSerial:
       return True
     return False
 
-  def sendCommand(self,command,timeout=MAX_COMMAND_TIME):
+  def sendCommand(self,command,store=None,timeout=MAX_COMMAND_TIME):
     if self.device is None:
       raise Exception("device not open")
     mySequence=None
@@ -93,6 +96,7 @@ class CmSerial:
       self.condition.release()
     if mySequence is None:
       raise Exception("unable to start command - timeout reached")
+    self.store=store
     self.device.write("%d %s\n"%(mySequence,command.encode('ascii', 'ignore')))
     return mySequence
 
@@ -119,7 +123,10 @@ class CmSerial:
       pnum=self.port
     while True:
       try:
-        self.device=serial.Serial(pnum,baudrate=self.baud)
+        self.device=serial.Serial()
+        self.device.port=pnum
+        self.device.baudrate=self.baud
+        self.device.open()
       except:
         print "Unable to open port: %s"%(traceback.format_exc())
         self.device=None
