@@ -1,4 +1,5 @@
 import re
+import termios
 import threading
 import serial
 import traceback
@@ -123,6 +124,14 @@ class CmSerial:
       pnum=self.port
     while True:
       try:
+        #dirty hack to avoid resetting the arduino
+        #see https://github.com/pyserial/pyserial/issues/124
+        #https://raspberrypi.stackexchange.com/questions/9695/disable-dtr-on-ttyusb0/31298#31298
+        f = open(pnum)
+        attrs = termios.tcgetattr(f)
+        attrs[2] = attrs[2] & ~termios.HUPCL
+        termios.tcsetattr(f, termios.TCSAFLUSH, attrs)
+        f.close()
         self.device=serial.Serial()
         self.device.port=pnum
         self.device.baudrate=self.baud
