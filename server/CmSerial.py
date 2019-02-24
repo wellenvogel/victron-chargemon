@@ -1,3 +1,4 @@
+import re
 import threading
 import serial
 import traceback
@@ -6,6 +7,7 @@ from CmStore import *
 from CmUtil import *
 
 class CmSerial:
+  MAX_COMMAND_TIME=30
   class State(Enum):
     INIT=0
     OPEN=1
@@ -22,8 +24,28 @@ class CmSerial:
     self.state=self.State.INIT # type: CmSerial.State
     self.stop=False
     self.device=None
+    self.sequence=1
+    self.runningSequence=None
+    self.runningStarted=None
+    self.condition=threading.Condition()
+
 
   def parseLine(self,data):
+    sequence=None
+    s=re.match("^[0-9]+ *",data)
+    if s is not None:
+      try:
+        sequence=int(data[s.start():s.end()])
+      except:
+        pass
+      data=data[s.end():]
+    if sequence is not None and data.rstrip() == '#END':
+      self.condition.acquire()
+      self.runningSequence=None
+      self.condition.release()
+      return
+    if self.runningSequence != sequence:
+      return
     if data.startswith('#'):
       return
     content=data.rstrip().split('=',2)
@@ -37,11 +59,58 @@ class CmSerial:
   def isOpen(self):
     return self.state==self.State.OPEN
 
-  def sendCommand(self,command):
+
+  def __isFree(self):
+    if self.runningSequence is None:
+      return True
+    if self.runningStarted is None:
+      self.runningSequence=None
+      return True
+    if self.runningStarted < (time.time() - self.MAX_COMMAND_TIME):
+      print "command  %d timed out"%(self.runningSequence)
+      self.runningSequence=None
+      return True
+    return False
+
+  def sendCommand(self,command,timeout=MAX_COMMAND_TIME):
     if self.device is None:
       raise Exception("device not open")
-    command=command+"\n"
-    self.device.write(command.encode('ascii','ignore'))
+    mySequence=None
+    startTime=time.time()
+    try:
+      while time.time() < (startTime+timeout):
+        self.condition.acquire()
+        if self.__isFree():
+          self.sequence+=1
+          mySequence=self.sequence
+          self.runningSequence=mySequence
+          self.runningStarted=time.time()
+          self.condition.release()
+          break
+        else:
+          self.condition.wait(timeout=1.0)
+    except:
+      self.condition.release()
+    if mySequence is None:
+      raise Exception("unable to start command - timeout reached")
+    self.device.write("%d %s\n"%(mySequence,command.encode('ascii', 'ignore')))
+    return mySequence
+
+  def waitForCommand(self,sequence,timeout=MAX_COMMAND_TIME):
+    if sequence is None:
+      return False
+    start=time.time()
+    while time.time() < (start +timeout):
+      self.condition.acquire()
+      self.__isFree() #check for timeouts
+      if self.runningSequence != sequence:
+        self.condition.release()
+        return True
+      self.condition.wait(0.1)
+    self.condition.release()
+    raise Exception("Timeout waiting for command %d completion"%(sequence))
+
+
 
   def run(self):
     try:
