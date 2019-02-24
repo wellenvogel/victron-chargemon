@@ -113,10 +113,10 @@ class VictronReceiver : public Callback{
         Serial.println(nv);
       }
     }
-    if (strcmp("VPV",label) == 0){
-      //panel voltage
+    if (strcmp("PPV",label) == 0){
+      //panel power
       float nv=atoi(value);
-      if (nv < 0 || nv > 100000) return;
+      if (nv < 0 || nv > 1000) return;
       info.lastPpower=current;
       info.pPower=nv;
       if (debug){
@@ -124,10 +124,10 @@ class VictronReceiver : public Callback{
         Serial.println(nv);
       }
     }
-    if (strcmp("PPV",label) == 0){
-      //panel power
+    if (strcmp("VPV",label) == 0){
+      //panel voltage
       float nv=atoi(value);
-      if (nv < 0 || nv > 1000) return;
+      if (nv < 0 || nv > 100000) return;
       info.lastPvoltage=current;
       info.pVoltage=nv;
       if (debug){
