@@ -21,16 +21,20 @@ byte historySizeIndex=-1;
 byte historyIntervalIndex=-1;
 byte speedUpIndex=-1;
 
-const char DELIMTER[] = " ";
+const char DELIMITER[] = " ";
 boolean valuesValid=false;
-void printStatus(){
+void printStatus(int num=0){
+  sendNumber(num);
   receiver->sendSerial("#STATUS",true);
+  sendNumber(num);
   receiver->sendSerial("Connection=");
   receiver->sendSerial(valuesValid?"OK":"FAIL",true);
+  sendNumber(num);
   receiver->sendSerial("Time=");
   receiver->sendSeriali(TimeBase::secondsSinceStart(),true);
-  victron->writeStatus(receiver);
-  controller->writeStatus(receiver);
+  victron->writeStatus(receiver,num);
+  controller->writeStatus(receiver,num);
+  sendNumber(num);
   receiver->sendSerial("#END",true);
 }
 
@@ -47,59 +51,79 @@ class IntermediateHandler : public Callback{
 
 IntermediateHandler * intermediateHandler=new IntermediateHandler();
 
+void sendNumber(int num){
+  if (receiver) receiver->writeNumberPrefix(num);
+}
+
 void handleSerialLine(const char *receivedData) {
-  char * tok = strtok(receivedData, DELIMTER);
+  char * tok = strtok(receivedData, DELIMITER);
   if (! tok) return;
+  int num=0;
+  if ('0' <= tok[0] && tok[0] <= '9'){
+    //number in front of command - reply this
+    num=atoi(tok);
+    tok=strtok(NULL,DELIMITER);
+    if (! tok) return;
+  }
   if (strcasecmp(tok, "STATUS") == 0 || strcasecmp(tok, "STATE") == 0) {
-    printStatus();
+    printStatus(num);
     return;
   }
   if (strcasecmp(tok, "RESET") == 0) {
+    sendNumber(num);
     receiver->sendSerial("##RESET",true);
     Settings::reset(true);
-    Settings::printSettings(receiver);
+    Settings::printSettings(receiver,num);
     return;
   }
   if (strcasecmp(tok, "SET") == 0) {
+    sendNumber(num);
     receiver->sendSerial("##SET",true);
-    char * name = strtok(NULL, DELIMTER);
+    char * name = strtok(NULL, DELIMITER);
     if (!name) {
-      Settings::printSettings(receiver);
+      Settings::printSettings(receiver,intermediateHandler,num);
       return;
     }
-    char * val = strtok(NULL, DELIMTER);
+    char * val = strtok(NULL, DELIMITER);
     if (! val) return;
     bool rt=Settings::setCurrentValue(name,atol(val));
     if (! rt){
+      sendNumber(num);
       receiver->sendSerial("##SET failed",true);
     }
     else{
+      sendNumber(num);
       receiver->sendSerial("##OK",true);
-      Settings::printSettings(receiver,intermediateHandler);
+      Settings::printSettings(receiver,intermediateHandler,num);
     }
     return;
   }
   if (strcasecmp(tok, "HISTORY") == 0) {
+    sendNumber(num);
     receiver->sendSerial("##HISTORY",true);
-    if (history) history->writeHistory(receiver,intermediateHandler);
+    if (history) history->writeHistory(receiver,intermediateHandler,num);
+    sendNumber(num);
     receiver->sendSerial("#END",true);
     return;
   }
   if (strcasecmp(tok, "TESTON") == 0) {
+    sendNumber(num);
     receiver->sendSerial("##TESTON",true);
     if (Settings::getCurrentValue(SETTINGS_ON_TIME) > 0) controller->changeState(Controller::TestOn);
-    printStatus();
+    printStatus(num);
     return;  
   }
   if (strcasecmp(tok,"TESTOFF")==0){
+    sendNumber(num);
     receiver->sendSerial("##TESTOFF",true);
     if (controller->getState()==Controller::TestOn){
       controller->changeState(Controller::Init);
-      printStatus();
+      printStatus(num);
     }
     return;
   }
- 
+
+  sendNumber(num); 
   receiver->sendSerial("##Unknown command: ");
   receiver->sendSerial(receivedData,true);
 }

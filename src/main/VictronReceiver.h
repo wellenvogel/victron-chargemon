@@ -165,8 +165,9 @@ class VictronReceiver : public Callback{
   const VictronInfo *getInfo(){
     return &info;
   }
-  void writeStatus(Receiver *out){
+  void writeStatus(Receiver *out,int num=0){
     long current=TimeBase::timeSeconds();
+    out->writeNumberPrefix(num);
     if ((info.lastVoltage+(MAX_AGE<<TimeBase::getDebugSpeedUp())) >= current){
       out->sendSerial("V=");
       out->sendSerial(info.voltage,true); 
@@ -174,6 +175,7 @@ class VictronReceiver : public Callback{
     else{
       out->sendSerial("V=##",true);
     }
+    out->writeNumberPrefix(num);
     if ((info.lastPvoltage+(MAX_AGE<<TimeBase::getDebugSpeedUp())) >= current){
       out->sendSerial("VPV=");
       out->sendSerial(info.pVoltage,true); 
@@ -181,6 +183,7 @@ class VictronReceiver : public Callback{
     else{
       out->sendSerial("VPV=##",true);
     }
+    out->writeNumberPrefix(num);
     if ((info.lastPpower+(MAX_AGE<<TimeBase::getDebugSpeedUp())) >= current){
       out->sendSerial("PPV=");
       out->sendSerial(info.pPower,true); 
@@ -188,6 +191,7 @@ class VictronReceiver : public Callback{
     else{
       out->sendSerial("PPV=##",true);
     }
+    out->writeNumberPrefix(num);
     if ((info.lastBcurrent+(MAX_AGE<<TimeBase::getDebugSpeedUp())) >= current){
       out->sendSerial("I=");
       out->sendSerial(info.bCurrent,true); 
@@ -195,6 +199,7 @@ class VictronReceiver : public Callback{
     else{
       out->sendSerial("I=##",true);
     }
+    out->writeNumberPrefix(num);
     if ((info.lastState+(MAX_AGE<<TimeBase::getDebugSpeedUp())) >= current){
       out->sendSerial("CS=");
       out->sendSerial(stateToName(info.state),true); 

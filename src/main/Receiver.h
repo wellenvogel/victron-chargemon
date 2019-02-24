@@ -157,6 +157,12 @@ class Receiver{
     sendSerial(v,nl);
   }
 
+  void writeNumberPrefix(int num){
+    if (! num) return;
+    sendSerial(num);
+    sendSerial(" ");
+  }
+
   virtual void sendSerial(const char * txt, bool nl=false)=0;
  
   

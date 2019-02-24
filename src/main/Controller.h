@@ -199,13 +199,16 @@ class Controller{
         return;
      }
   }  
-  void writeStatus(Receiver *out){
+  void writeStatus(Receiver *out, int num=0){
+    out->writeNumberPrefix(num);
     out->sendSerial("CState=");
     out->sendSerial(statusToString(state),true);
+    out->writeNumberPrefix(num);
     out->sendSerial("CTime=");
     char buf[10];
     snprintf(buf,10,"%d",(TimeBase::timeSeconds()-lastChange));
     out->sendSerial(buf,true);
+    out->writeNumberPrefix(num);
     out->sendSerial("COutput=");
     out->sendSerial(statusToOutput(state)?"On":"Off",true);
   }

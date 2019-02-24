@@ -99,16 +99,19 @@ class Settings{
     return true;
   }
 
-  static void printSettings(Receiver* out, Callback * cb=NULL){
+  static void printSettings(Receiver* out, Callback * cb=NULL,int num=0){
+    out->writeNumberPrefix(num);
     out->sendSerial("#SETTINGS",true);
     for (byte idx =0 ;idx < NUMSETTINGS;idx++){
       if (idx > 4 && (idx %5) == 0 && cb){
         cb->callback(NULL);
       }
+      out->writeNumberPrefix(num);
       out->sendSerial(settings[idx].name);
       out->sendSerial("=");
       out->sendSerial(getCurrentValue(idx),true);
     }
+    out->writeNumberPrefix(num);
     out->sendSerial("#END",true);
     
   }
