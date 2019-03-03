@@ -12,8 +12,18 @@
     function callback(data){
         var dv=JSON.parse(data);
         var txt='';
-        for (var k=0;k<dv.data.length;k++){
-            txt+=dv.data[k]+"\n";
+        if (dv.data){
+            for (var k=0;k<dv.data.length;k++){
+                txt+=dv.data[k]+"\n";
+            }
+        }
+        else{
+            if (dv.info){
+                txt=dv.info
+            }
+            else{
+                txt="###NO DATA###"
+            }
         }
         var target=document.getElementById('result');
         if (target){
