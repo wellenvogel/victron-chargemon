@@ -1,0 +1,49 @@
+<html>
+<head>
+    <style>
+        #result{
+            white-space: pre;
+            margin: 10px;
+            border: 1px solid;
+            padding: 10px;
+        }
+    </style>
+    <script type="text/javascript">
+    function callback(data){
+        var dv=JSON.parse(data);
+        var txt='';
+        for (var k=0;k<dv.data.length;k++){
+            txt+=dv.data[k]+"\n";
+        }
+        var target=document.getElementById('result');
+        if (target){
+            target.textContent=txt;
+        }
+
+    }
+    function sendRequest(){
+        var v=document.getElementById("command");
+        if (! v) return;
+        var r=new XMLHttpRequest();
+        r.onreadystatechange=function(){
+            if (r.readyState==4){
+                callback(r.response);
+            }
+        }
+        r.open('GET','/control/raw?cmd='+encodeURIComponent(v.value));
+        r.send('');
+    }
+    </script>
+</head>
+<body>
+    <h1>ChargeMon</h1>
+        <label>Kommando
+            <input type="text" name="cmd" id="command" value="state"/>
+        </label>
+        <button id="send" onclick="sendRequest();">Senden</button>
+    <h3>Resultat</h3>
+    <div id="result">
+
+    </div>
+</body>
+</html>

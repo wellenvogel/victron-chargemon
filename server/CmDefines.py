@@ -11,7 +11,8 @@ class Item:
     return {
       'name':self.name,
       'display':self.display,
-      'unit':self.unit
+      'unit':self.unit,
+      'multi':self.isMulti
     }
 
 class HistoryItem(Item):

@@ -33,4 +33,14 @@ class CmController:
         data.append(items[k].toResponse())
       rt['data']=data
       return rt
+    if path=='raw':
+      cmd = self.getMandatoryParam(param, 'cmd')
+      store = self.serial.sendCommandAndWait(cmd,raw=True)
+      items = store.getAll()
+      rt = {'status': 'OK'}
+      data = []
+      for k in items:
+        data.append(k)
+      rt['data'] = data
+      return rt
     return {}

@@ -25,11 +25,15 @@ class CmReceivedItem:
     }
 
 class CmStore:
-  def __init__(self,maxage=MAXAGE):
+  def __init__(self,maxage=MAXAGE,isRaw=False):
     self.maxage=maxage
+    self.isRaw=isRaw
     self.reset()
   def reset(self):
-    self.store={}
+    if self.isRaw:
+      self.store=[]
+    else:
+      self.store={}
   def __stillValid(self,item,now=time.time()):
     if item is None:
       return False
@@ -38,15 +42,21 @@ class CmStore:
   def getItem(self,definition):
     if definition is None:
       return None
+    if self.isRaw:
+      raise Exception("invalid usage, raw store")
     key = definition.name
     v = self.store.get(key)
     if self.__stillValid(v):
       return v
     return None
   def getAll(self):
+    if self.isRaw:
+      return self.store
     return self.getItems(CmDefines.STATUS+CmDefines.SETTINGS+CmDefines.HISTORY)
 
   def getItems(self,definitions):
+    if self.isRaw:
+      raise Exception("invalid usage, raw store")
     rt={}
     now=time.time()
     for d in definitions:
@@ -61,6 +71,8 @@ class CmStore:
     :type receivedItem: CmReceivedItem
     :return:
     """
+    if self.isRaw:
+      raise Exception("invalid usage, raw store")
     key=receivedItem.definition.name
     if receivedItem.definition.isMulti:
       if self.store.get(key) is None:
@@ -71,4 +83,18 @@ class CmStore:
         self.store[key].value.append(receivedItem.value)
     else:
       self.store[key]=receivedItem
-
+  #seqeunce should already has been stripped
+  def addLine(self,line):
+    if self.isRaw:
+      self.store.append(line.rstrip())
+      return
+    if line.startswith('#'):
+      return
+    content=line.rstrip().split('=',2)
+    if len(content) < 2:
+      return
+    definition=CmDefines.findDefinition(content[0])
+    if definition is None:
+      return
+    v=CmReceivedItem(definition,content[1])
+    self.addItem(v)

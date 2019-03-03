@@ -74,16 +74,7 @@ class CmSerial:
       return
     if self.store is None:
       return
-    if data.startswith('#'):
-      return
-    content=data.rstrip().split('=',2)
-    if len(content) < 2:
-      return
-    definition=CmDefines.findDefinition(content[0])
-    if definition is None:
-      return
-    v=CmReceivedItem(definition,content[1])
-    self.store.addItem(v)
+    self.store.addLine(data)
   def isOpen(self):
     return self.state==self.State.OPEN
 
@@ -140,8 +131,8 @@ class CmSerial:
     self.condition.release()
     raise Exception("Timeout waiting for command %d completion"%(sequence))
 
-  def sendCommandAndWait(self,command,timeout=MAX_COMMAND_TIME):
-    store=CmStore()
+  def sendCommandAndWait(self,command,timeout=MAX_COMMAND_TIME,raw=False):
+    store=CmStore(isRaw=raw)
     seq=self.sendCommand(command,store,timeout)
     if seq is None:
       raise Exception("unable to send command %s"%command)
