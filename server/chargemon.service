@@ -1,0 +1,15 @@
+[Unit]
+Description=chargemon
+After=syslog.target network.target
+
+
+[Service]
+User=pi
+ExecStart=/home/pi/chargemon/CmMain.py -p 8081 usb:1-1.5:1.0
+WorkingDirectory=/home/pi/chargemon
+KillMode=control-group
+Restart=always
+TimeoutStopSec=10
+
+[Install]
+WantedBy=multi-user.target
