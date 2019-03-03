@@ -1,14 +1,16 @@
+import logging
 import re
 import termios
 import threading
 import serial
 import traceback
 
+import Constants
 from CmStore import *
 from CmUtil import *
 
 class CmSerial:
-  MAX_COMMAND_TIME=30
+  MAX_COMMAND_TIME=10
   class State(Enum):
     INIT=0
     OPEN=1
@@ -18,10 +20,6 @@ class CmSerial:
     self.port=port
     self.store=None # type: CmStore
     self.baud=baud
-    self.thread=threading.Thread(target=self.run)
-    self.thread.setName('Serial %s'%(self.port))
-    self.thread.setDaemon(True)
-    self.thread.start()
     self.state=self.State.INIT # type: CmSerial.State
     self.stop=False
     self.device=None
@@ -29,6 +27,32 @@ class CmSerial:
     self.runningSequence=None
     self.runningStarted=None
     self.condition=threading.Condition()
+    self.stop=False
+    self.logger = logging.getLogger(Constants.LOGNAME)
+    try:
+      pnum=int(self.port)
+    except:
+      pnum=self.port
+    try:
+      #dirty hack to avoid resetting the arduino
+      #see https://github.com/pyserial/pyserial/issues/124
+      #https://raspberrypi.stackexchange.com/questions/9695/disable-dtr-on-ttyusb0/31298#31298
+      f = open(pnum)
+      attrs = termios.tcgetattr(f)
+      attrs[2] = attrs[2] & ~termios.HUPCL
+      termios.tcsetattr(f, termios.TCSAFLUSH, attrs)
+      f.close()
+      self.device=serial.Serial(port=pnum,baudrate=self.baud)
+    except:
+      self.logger.error("Unable to open port: %s"%(traceback.format_exc()))
+      self.device=None
+      self.state=self.State.ERROR
+      return
+    self.state=self.State.OPEN
+    self.thread = threading.Thread(target=self.run)
+    self.thread.setName('Serial %s' % (self.port))
+    self.thread.setDaemon(True)
+    self.thread.start()
 
 
   def parseLine(self,data):
@@ -71,7 +95,7 @@ class CmSerial:
       self.runningSequence=None
       return True
     if self.runningStarted < (time.time() - self.MAX_COMMAND_TIME):
-      print "command  %d timed out"%(self.runningSequence)
+      self.logger.error("command  %d timed out"%(self.runningSequence))
       self.runningSequence=None
       return True
     return False
@@ -82,8 +106,8 @@ class CmSerial:
     mySequence=None
     startTime=time.time()
     try:
+      self.condition.acquire()
       while time.time() < (startTime+timeout):
-        self.condition.acquire()
         if self.__isFree():
           self.sequence+=1
           mySequence=self.sequence
@@ -94,8 +118,9 @@ class CmSerial:
         else:
           self.condition.wait(timeout=1.0)
     except:
-      self.condition.release()
+      pass
     if mySequence is None:
+      self.condition.release()
       raise Exception("unable to start command - timeout reached")
     self.store=store
     self.device.write("%d %s\n"%(mySequence,command.encode('ascii', 'ignore')))
@@ -105,8 +130,8 @@ class CmSerial:
     if sequence is None:
       return False
     start=time.time()
+    self.condition.acquire()
     while time.time() < (start +timeout):
-      self.condition.acquire()
       self.__isFree() #check for timeouts
       if self.runningSequence != sequence:
         self.condition.release()
@@ -115,44 +140,29 @@ class CmSerial:
     self.condition.release()
     raise Exception("Timeout waiting for command %d completion"%(sequence))
 
+  def sendCommandAndWait(self,command,timeout=MAX_COMMAND_TIME):
+    store=CmStore()
+    seq=self.sendCommand(command,store,timeout)
+    if seq is None:
+      raise Exception("unable to send command %s"%command)
+    self.waitForCommand(seq,timeout)
+    return store
 
+  def close(self):
+    self.stop=True
 
   def run(self):
-    try:
-      pnum=int(self.port)
-    except:
-      pnum=self.port
-    while True:
-      try:
-        #dirty hack to avoid resetting the arduino
-        #see https://github.com/pyserial/pyserial/issues/124
-        #https://raspberrypi.stackexchange.com/questions/9695/disable-dtr-on-ttyusb0/31298#31298
-        f = open(pnum)
-        attrs = termios.tcgetattr(f)
-        attrs[2] = attrs[2] & ~termios.HUPCL
-        termios.tcsetattr(f, termios.TCSAFLUSH, attrs)
-        f.close()
-        self.device=serial.Serial()
-        self.device.port=pnum
-        self.device.baudrate=self.baud
-        self.device.open()
-      except:
-        print "Unable to open port: %s"%(traceback.format_exc())
-        self.device=None
-        self.state=self.State.ERROR
-        time.sleep(5)
-        continue
-      self.state=self.State.OPEN
-      while not self.stop:
+      while not self.stop and self.device is not None:
         try:
           line=self.device.readline(1000)
         except:
-          print "Exception while reading serial %s"%(traceback.format_exc())
+          self.logger.error("Exception while reading serial %s"%(traceback.format_exc()))
           self.device.close()
           self.state=self.State.ERROR
-          time.sleep(5)
-          break
+          return
         if line is not None:
           data=line.decode('ascii','ignore')
           self.parseLine(data)
+      self.device.close()
+
 

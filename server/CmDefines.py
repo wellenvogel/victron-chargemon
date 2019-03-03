@@ -7,6 +7,12 @@ class Item:
     self.isMulti=False
   def isHistory(self):
     return False
+  def toResponse(self):
+    return {
+      'name':self.name,
+      'display':self.display,
+      'unit':self.unit
+    }
 
 class HistoryItem(Item):
   def __init__(self,name,display,unit='',factor=None,isFirst=False,isLast=False,isMulti=False):

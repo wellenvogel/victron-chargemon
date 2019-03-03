@@ -18,10 +18,14 @@ class CmReceivedItem:
       return str(v)
     except:
       return self.value
-
+  def toResponse(self):
+   return {
+      'value': self.getValue(),
+      'definition': self.definition.toResponse()
+    }
 
 class CmStore:
-  def __init__(self,maxage):
+  def __init__(self,maxage=MAXAGE):
     self.maxage=maxage
     self.reset()
   def reset(self):
@@ -39,6 +43,8 @@ class CmStore:
     if self.__stillValid(v):
       return v
     return None
+  def getAll(self):
+    return self.getItems(CmDefines.STATUS+CmDefines.SETTINGS+CmDefines.HISTORY)
 
   def getItems(self,definitions):
     rt={}
