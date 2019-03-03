@@ -130,7 +130,9 @@ void handleSerialLine(const char *receivedData) {
 
   sendNumber(num); 
   receiver->sendSerial("##Unknown command: ");
-  receiver->sendSerial(receivedData,true);
+  receiver->sendSerial(tok,true);
+  sendNumber(num);
+  receiver->sendSerial("#END",true);
 }
 
 class CbHandler : public Callback{
