@@ -13,11 +13,26 @@ from httpserver import *
 from CmController import *
 import logging
 import logging.handlers
+import getopt
 
 
 class CmMain:
-  def __init__(self,serialPort,baud=9600):
-    self.serialPort=serialPort
+  def __init__(self,argv):
+    try:
+      opts,args=getopt.getopt(argv[1:],'p:b:')
+    except getopt.GetoptError as err:
+      print str(err)
+      self.usage()
+      raise Exception
+    port=8080
+    baud=19200
+    for o, a in opts:
+      if o == '-p':
+        port=int(a)
+      if o == '-b':
+        baud=int(a)
+    self.webPort=port
+    self.serialPort=args[0]
     self.baud=baud
     self.statusStore=CmStore(MAXAGE)
     self.historyStore=CmStore(MAXAGE)
@@ -27,7 +42,12 @@ class CmMain:
     handler = logging.handlers.TimedRotatingFileHandler(filename="cmserver.log", when="D")
     handler.setFormatter(logging.Formatter("%(asctime)s-%(message)s"))
     self.logger.addHandler(handler)
-    self.logger.info("####cmserver started, port=%s,baud=%d####",serialPort,baud)
+    self.logger.info("####cmserver started, port=%s,baud=%d####",self.serialPort,baud)
+  def usage(self):
+    print "usage: XXX [-p port] [.b baud] serialDevice"
+    print "           -p - port for webserver"
+    print "           -b baudrate, default 19200"
+    print "           serialDevice either path or usb:<usbid>"
 
   def usbIdFromPath(self,path):
     rt=re.sub('/ttyUSB.*','',path).split('/')[-1]
@@ -56,7 +76,7 @@ class CmMain:
     return port
   def run(self):
     controller=CmController(None)
-    server=HTTPServer(HTTPHandler,8081,controller)
+    server=HTTPServer(HTTPHandler,self.webPort,controller)
     serverThread=threading.Thread(target=self.runServer,args=[server])
     serverThread.setDaemon(True)
     serverThread.setName("HTTPServer")
@@ -114,5 +134,5 @@ class CmMain:
     server.serve_forever()
 
 
-main=CmMain(sys.argv[1],int(sys.argv[2]) if len(sys.argv)>2 else 19200)
+main=CmMain(sys.argv)
 main.run()
