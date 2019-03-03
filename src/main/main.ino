@@ -85,11 +85,16 @@ void handleSerialLine(const char *receivedData) {
       return;
     }
     char * val = strtok(NULL, DELIMITER);
-    if (! val) return;
-    bool rt=Settings::setCurrentValue(name,atol(val));
+    bool rt=false;
+    if (val) {
+      rt=Settings::setCurrentValue(name,atol(val));
+    }  
     if (! rt){
       sendNumber(num);
       receiver->sendSerial("##SET failed",true);
+      sendNumber(num);
+      receiver->sendSerial("#END",true);
+      
     }
     else{
       sendNumber(num);
@@ -138,7 +143,7 @@ byte loopIdx=-1;
 void setup() {
   receiver=new SerialReceiver(new CbHandler());
   alternateReceiver=new AlternateReceiver(NULL,2,3);
-  receiver->init(9600);
+  receiver->init(19200);
   alternateReceiver->init(19200);
   victron=new VictronReceiver(alternateReceiver);
   controller=new Controller(victron);
