@@ -111,9 +111,6 @@ class Settings{
       out->sendSerial("=");
       out->sendSerial(getCurrentValue(idx),true);
     }
-    out->writeNumberPrefix(num);
-    out->sendSerial("#END",true);
-    
   }
   
 };

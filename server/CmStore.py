@@ -34,6 +34,8 @@ class CmStore:
       self.store=[]
     else:
       self.store={}
+    self.result=None
+    self.error=None
   def __stillValid(self,item,now=time.time()):
     if item is None:
       return False
@@ -85,6 +87,12 @@ class CmStore:
       self.store[key]=receivedItem
   #seqeunce should already has been stripped
   def addLine(self,line):
+    if line.startswith('#RESULT'):
+      st=line.rstrip().split(" ",2)
+      if len(st) >= 2:
+        self.result=st[1]
+        if len(st) > 2:
+          self.error=st[2]
     if self.isRaw:
       self.store.append(line.rstrip())
       return

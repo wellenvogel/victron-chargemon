@@ -64,9 +64,10 @@ class CmSerial:
       except:
         pass
       data=data[s.end():]
-    if sequence is not None and data.rstrip() == '#END':
+    if sequence is not None and data.startswith('#RESULT'):
       self.condition.acquire()
       self.runningSequence=None
+      self.store.addLine(data)
       self.store=None
       self.condition.release()
       return

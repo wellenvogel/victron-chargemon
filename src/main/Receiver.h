@@ -163,6 +163,17 @@ class Receiver{
     sendSerial(" ");
   }
 
+  void sendResult(int num,const char *error=NULL){
+    writeNumberPrefix(num);
+    sendSerial("#RESULT");
+    if ( ! error){
+      sendSerial(" OK",true);
+      return;
+    }
+    sendSerial(" ERROR ");
+    sendSerial(error,true);
+  }
+
   virtual void sendSerial(const char * txt, bool nl=false)=0;
  
   

@@ -27,7 +27,9 @@ class CmController:
       cmd=self.getMandatoryParam(param,'cmd')
       store=self.serial.sendCommandAndWait(cmd)
       items=store.getAll()
-      rt={'status':'OK'}
+      rt={'status':store.result}
+      if store.error is not None:
+        rt['info']=store.error
       data=[]
       for k in items:
         data.append(items[k].toResponse())

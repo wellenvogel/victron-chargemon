@@ -34,8 +34,7 @@ void printStatus(int num=0){
   receiver->sendSeriali(TimeBase::secondsSinceStart(),true);
   victron->writeStatus(receiver,num);
   controller->writeStatus(receiver,num);
-  sendNumber(num);
-  receiver->sendSerial("#END",true);
+  receiver->sendResult(num);
 }
 
 /**
@@ -74,6 +73,7 @@ void handleSerialLine(const char *receivedData) {
     receiver->sendSerial("##RESET",true);
     Settings::reset(true);
     Settings::printSettings(receiver,num);
+    receiver->sendResult(num);
     return;
   }
   if (strcasecmp(tok, "SET") == 0) {
@@ -82,6 +82,7 @@ void handleSerialLine(const char *receivedData) {
     char * name = strtok(NULL, DELIMITER);
     if (!name) {
       Settings::printSettings(receiver,intermediateHandler,num);
+      receiver->sendResult(num);
       return;
     }
     char * val = strtok(NULL, DELIMITER);
@@ -90,16 +91,11 @@ void handleSerialLine(const char *receivedData) {
       rt=Settings::setCurrentValue(name,atol(val));
     }  
     if (! rt){
-      sendNumber(num);
-      receiver->sendSerial("##SET failed",true);
-      sendNumber(num);
-      receiver->sendSerial("#END",true);
-      
+      receiver->sendResult(num,"SET failed");
     }
     else{
-      sendNumber(num);
-      receiver->sendSerial("##OK",true);
       Settings::printSettings(receiver,intermediateHandler,num);
+      receiver->sendResult(num);
     }
     return;
   }
@@ -107,8 +103,7 @@ void handleSerialLine(const char *receivedData) {
     sendNumber(num);
     receiver->sendSerial("##HISTORY",true);
     if (history) history->writeHistory(receiver,intermediateHandler,num);
-    sendNumber(num);
-    receiver->sendSerial("#END",true);
+    receiver->sendResult(num);
     return;
   }
   if (strcasecmp(tok, "TESTON") == 0) {
@@ -125,14 +120,16 @@ void handleSerialLine(const char *receivedData) {
       controller->changeState(Controller::Init);
       printStatus(num);
     }
+    else{
+      receiver->sendResult(num);
+    }
     return;
   }
 
   sendNumber(num); 
   receiver->sendSerial("##Unknown command: ");
   receiver->sendSerial(tok,true);
-  sendNumber(num);
-  receiver->sendSerial("#END",true);
+  receiver->sendResult(num,"unknown command");
 }
 
 class CbHandler : public Callback{
