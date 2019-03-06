@@ -20,18 +20,21 @@ import getopt
 class CmMain:
   def __init__(self,argv):
     try:
-      opts,args=getopt.getopt(argv[1:],'p:b:')
+      opts,args=getopt.getopt(argv[1:],'p:b:d')
     except getopt.GetoptError as err:
       print str(err)
       self.usage()
       raise Exception
     port=8080
     baud=19200
+    self.query=0
     for o, a in opts:
       if o == '-p':
         port=int(a)
       if o == '-b':
         baud=int(a)
+      if o == '-d':
+        self.query=1
     self.webPort=port
     self.serialPort=args[0]
     self.baud=baud
@@ -45,9 +48,10 @@ class CmMain:
     self.logger.addHandler(handler)
     self.logger.info("####cmserver started, port=%s,baud=%d####",self.serialPort,baud)
   def usage(self):
-    print "usage: XXX [-p port] [.b baud] serialDevice"
+    print "usage: XXX [-p port] [-b baud] [-d] serialDevice"
     print "           -p - port for webserver"
     print "           -b baudrate, default 19200"
+    print "           -d do queries on stdout"
     print "           serialDevice either path or usb:<usbid>"
 
   def usbIdFromPath(self,path):
@@ -103,31 +107,32 @@ class CmMain:
       count=0
       while self.serial.isOpen():
         count += 1
-        self.statusStore.reset()
-        sq = self.serial.sendCommand('status', store=self.statusStore)
-        self.serial.waitForCommand(sq)
-        print "%s: Serial State=%d"%(datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"),self.serial.state)
-        for st in CmDefines.STATUS:
-          v=self.statusStore.getItem(st)
-          print "#%s=%s%s"%(st.display,v.getValue() if v is not None else '???',st.unit)
-        if (count % 20) == 0 and self.serial.isOpen():
-          try:
-            self.historyStore.reset()
-            sq=self.serial.sendCommand('history',store=self.historyStore)
-            self.serial.waitForCommand(sq)
-          except:
-            print traceback.format_exc()
-            self.serial.close()
-          print "#### HISTORY ###"
-          for h in CmDefines.HISTORY:
-            v=self.historyStore.getItem(h)
-            if v is not None:
-              val=v.getValue()
-              if h.isMulti:
-                for item in val:
-                  print "#%s=%s%s" % (h.display, item,h.unit)
-              else:
-                print "#%s=%s%s" % (h.display, val,h.unit)
+        if self.query != 0:
+          self.statusStore.reset()
+          sq = self.serial.sendCommand('status', store=self.statusStore)
+          self.serial.waitForCommand(sq)
+          print "%s: Serial State=%d"%(datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"),self.serial.state)
+          for st in CmDefines.STATUS:
+            v=self.statusStore.getItem(st)
+            print "#%s=%s%s"%(st.display,v.getValue() if v is not None else '???',st.unit)
+          if (count % 20) == 0 and self.serial.isOpen():
+            try:
+              self.historyStore.reset()
+              sq=self.serial.sendCommand('history',store=self.historyStore)
+              self.serial.waitForCommand(sq)
+            except:
+              print traceback.format_exc()
+              self.serial.close()
+            print "#### HISTORY ###"
+            for h in CmDefines.HISTORY:
+              v=self.historyStore.getItem(h)
+              if v is not None:
+                val=v.getValue()
+                if h.isMulti:
+                  for item in val:
+                    print "#%s=%s%s" % (h.display, item,h.unit)
+                else:
+                  print "#%s=%s%s" % (h.display, val,h.unit)
         time.sleep(5)
       time.sleep(5)
 
