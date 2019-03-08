@@ -7,10 +7,25 @@ class Store {
         this.register=this.register.bind(this);
         this.unregister=this.unregister.bind(this);
     }
-    setValue(key,value){
+    compare(oldval,newval){
+        if (typeof(newval) !== typeof (oldval)) return false;
+        if (typeof (newval) === 'function') return true;
+        if (typeof(newval) === 'object'){
+            if (Object.keys(newval).length != Object.keys(oldval).length) return false;
+            for (let k in oldval){
+                if (! this.compare(oldval[k],newval[k])) return false;
+            }
+            return true;
+        }
+        else{
+            return (newval == oldval);
+        }
+    }
+    setValue(key,value,onlyUpdate){
+        if (onlyUpdate && this.compare(this.data[key],value)) return;
         this.data[key]=value;
         if (this.callbacks[key]){
-            this.callbacks[keys].forEach(function(cb){
+            this.callbacks[key].forEach(function(cb){
                 cb(key,value);
             })
         }

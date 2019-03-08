@@ -3,7 +3,7 @@
   "version": "2.0.0",
   "description": "boilerplate for some simple ract app with react-toolbox",
   "main": "index.js",
-  "repository":"https://github.com/wellenvogel/react-boilerplate",
+  "repository": "https://github.com/wellenvogel/react-boilerplate",
   "scripts": {
     "build": "webpack",
     "watch": "webpack --watch",
@@ -35,6 +35,7 @@
     "less": "^3.9.0",
     "mini-css-extract-plugin": "^0.5.0",
     "moment-duration-format": "^2.2.2",
+    "object-assign": "^4.1.1",
     "postcss": "^7.0.14",
     "postcss-loader": "^3.0.0",
     "postcss-preset-env": "^6.6.0",

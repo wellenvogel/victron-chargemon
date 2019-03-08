@@ -34,6 +34,13 @@ module.exports = function(env) {
                     ],
                 },
                 {
+                    test: /\.jsx$/,
+                    exclude: /node_modules/,
+                    use: [
+                        'babel-loader',
+                    ],
+                },
+                {
                     test: /node_modules.react-toolbox.*\.css$/,
                     use: [
                         "style-loader",
@@ -122,6 +129,15 @@ module.exports = function(env) {
             ]),
             new MiniCssExtractPlugin( {filename:"index.css"}),
         ],
-        devtool: devtool
+        devtool: devtool,
+        devServer:{
+            proxy: {
+                '/control':{
+                    //target: 'http://localhost:8081/',
+                    target: 'http://10.222.10.55:8081/',
+                    secure: false
+                }
+            }
+        }
     }
 };

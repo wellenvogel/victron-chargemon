@@ -4,15 +4,15 @@ import {
     Route
 } from 'react-router-dom';
 
-import ExampleView from './ExampleView';
+import MainView from './MainView';
 import SecondView from './SecondView';
 class App extends Component {
   render() {
     return (
         <Router>
             <div className="main">
-                <Route exact path="/" component={ExampleView}/>
-                <Route path="/first" component={ExampleView}/>
+                <Route exact path="/" component={MainView}/>
+                <Route path="/first" component={MainView}/>
                 <Route path="/second/" component={SecondView}/>
             </div>
         </Router>

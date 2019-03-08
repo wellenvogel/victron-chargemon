@@ -69,4 +69,37 @@ button.fab{
   .flex(1);
 }
 
+.valueDisplay{
+  width: 20em;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 0.5em;
+  border: 1px solid @borderColor;
+  position: relative;
+  .name {
+    text-align: center;
+    right: 0;
+    background-color: @titleBackgroundColor;
+    padding: 5px;
+  }
+  .value {
+    text-align: center;
+    font-size: 3em;
+  }
+  .unit {
+    position: absolute;
+    bottom: 0.3em;
+    right: 0.3em;
+    font-size: 1.5em;
+  }
+}
+
+.error {
+  margin: auto;
+  color: @errorColor;
+  border: 1px solid @borderColor;
+  padding: 1em;
+  font-size: 2em;
+}
+
 
