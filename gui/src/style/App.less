@@ -1,0 +1,72 @@
+@import "flexbox";
+@import "defines";
+
+
+
+
+html, body, #root, .main {
+  height:100%;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  overflow: hidden;
+  font-family: "Roboto","Times New Roman";
+}
+/* view is the real container for the header and content */
+.view{
+  .flex-display();
+  .flex-direction(column);
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+
+
+.content{
+  .flex(1);
+}
+
+.mainBackColor{
+  background-color: @mainColor;
+}
+.mainColor{
+  color: @mainColor;
+}
+
+.toolbarButton{
+  color: white !important;
+}
+.iconColor{
+  color: @mainColor;
+}
+
+button.fab{
+  background-color: @mainColor;
+  .iconColor{
+    color: white;
+  }
+}
+
+
+.toolbar-label {
+  display: inline-block;
+  margin-bottom: auto;
+  margin-top: auto;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.toolbar span{
+  display: inline-block;
+}
+.toolbar button{
+  z-index: 10;
+  color: white !important;
+}
+.spacer{
+  .flex(1);
+}
+
+

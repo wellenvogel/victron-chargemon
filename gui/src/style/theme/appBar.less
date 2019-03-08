@@ -1,0 +1,42 @@
+@import "../defines";
+@import "../flexbox";
+.appBar{
+  background-color: @mainColor;
+  .inner {
+    .flex-display();
+    .flex-direction(row);
+    .flex-shrink(0);
+  }
+  width: 100%;
+}
+
+.icon{
+  color: white;
+}
+.menu{
+  color:white;
+}
+.toggle{
+  color: white !important;
+}
+
+.selected {
+  background: #8080804d !important;
+}
+
+
+.menu-inner {
+  color: black;
+}
+
+.flat:hover {
+  background-color: inherit !important;
+}
+
+.flat:focus {
+  background-color: inherit !important;
+}
+
+.flat {
+  min-width: 36px;
+}

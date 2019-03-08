@@ -1,0 +1,48 @@
+{
+  "name": "react-boilerplate",
+  "version": "2.0.0",
+  "description": "boilerplate for some simple ract app with react-toolbox",
+  "main": "index.js",
+  "repository":"https://github.com/wellenvogel/react-boilerplate",
+  "scripts": {
+    "build": "webpack",
+    "watch": "webpack --watch",
+    "release": "webpack -p",
+    "server": "webpack-dev-server",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Andreas Vogel",
+  "license": "MIT",
+  "dependencies": {
+    "@navjobs/upload": "^3.1.1",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-latest": "^6.24.1",
+    "babel-preset-react": "^6.24.1",
+    "less-loader": "^4.0.5",
+    "moment": "^2.19.2",
+    "react": "^16.8.1",
+    "react-dom": "^16.8.1",
+    "react-router-dom": "^4.2.2",
+    "react-toolbox": "^2.0.0-beta.13"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-loader": "^7.1.5",
+    "babel-preset-env": "^1.7.0",
+    "copy-webpack-plugin": "^5.0.0",
+    "css-loader": "^2.1.1",
+    "less": "^3.9.0",
+    "mini-css-extract-plugin": "^0.5.0",
+    "moment-duration-format": "^2.2.2",
+    "postcss": "^7.0.14",
+    "postcss-loader": "^3.0.0",
+    "postcss-preset-env": "^6.6.0",
+    "query-string": "^6.3.0",
+    "style-loader": "^0.23.1",
+    "webpack": "^4.29.6",
+    "webpack-cli": "^3.2.3",
+    "webpack-dev-server": "^3.2.1",
+    "whatwg-fetch": "^3.0.0"
+  }
+}
