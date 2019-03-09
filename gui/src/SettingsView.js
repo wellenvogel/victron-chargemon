@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import ToolBar from './components/ToolBar';
 import Button from 'react-toolbox/lib/button';
-import StoreInput from './components/StoreInput.jsx';
+import ManagedInput from './components/ManagedInput.jsx';
 import Constants from './components/Constants.js';
 import Store from './components/Store.js';
 
@@ -24,7 +24,8 @@ class SettingsView extends Component {
 
     constructor(props){
         super(props);
-        this.state={};
+        this.state={command:undefined};
+        this.command='state';
         Store.setValue(COMMANDKEY,'state');
         this.goBack=this.goBack.bind(this);
         this.onOkClick=this.onOkClick.bind(this);
@@ -32,6 +33,7 @@ class SettingsView extends Component {
         this.setError=this.setError.bind(this);
         this.startCommand=this.startCommand.bind(this);
         this.runCommand=this.runCommand.bind(this);
+        this.onKeyPress=this.onKeyPress.bind(this);
     }
     setError(err){
         this.setState({error:err,data:undefined});
@@ -60,10 +62,18 @@ class SettingsView extends Component {
 
     }
     startCommand(){
-        this.runCommand(Store.getValue(COMMANDKEY));
+        this.setState({command:this.command});
+        this.runCommand(this.command);
     }
     changeCommand(newval){
-        this.setState({command:newval});
+        //intentionally no state here as the input handles it ...
+        this.command=newval;
+    }
+    onKeyPress(key){
+        console.log("keypress "+key);
+        if (key.key && key.key === 'Enter'){
+            this.startCommand();
+        }
     }
     render() {
         let title="Settings";
@@ -71,7 +81,14 @@ class SettingsView extends Component {
         let Command=function(props){
             return (
               <div className={"commandBox "+(props.className?props.className:'')}>
-                  <StoreInput type='text' label='Command' storeKey={COMMANDKEY}/>
+                  <ManagedInput
+                      className='commandInput'
+                      type='text'
+                      label='Command'
+                      onChange={self.changeCommand}
+                      value={self.command}
+                      onKeyPress={self.onKeyPress}
+                      />
                   <Button className="runCommandButton" onClick={self.startCommand}>Start</Button>
               </div>
             );

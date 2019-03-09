@@ -155,8 +155,21 @@ button.fab{
 
 .commandBox{
   .mainItems();
+  .commandInput{
+    width: 70%;
+    display: inline-block;
+  }
+  .runCommandButton{
+    width: 30%;
+    display: inline-block;
+    background-color: @mainColor ;
+    color: white !important;
+  }
 }
 .commandResult{
   .mainItems();
   white-space: pre;
+  border: 1px solid @mainColorDimmed;
+  padding: 0.5em;
+  overflow: auto;
 }
