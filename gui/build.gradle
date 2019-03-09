@@ -1,0 +1,77 @@
+import java.text.SimpleDateFormat
+import com.moowork.gradle.node.task.*
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "com.moowork.gradle:gradle-node-plugin:0.12"
+    }
+}
+
+apply plugin: 'com.moowork.node'
+apply plugin: 'java'
+
+class MyNpm extends NpmTask{
+    def subDir
+    @InputFiles
+    def getInputFiles(){
+        logger.debug "getInputFiles called for $name"
+        return project.fileTree(project.projectDir,{
+            exclude "build/**"
+            exclude ".gradle/**"
+        })
+    }
+    @OutputFiles
+    def getOutputFiles(){
+        logger.debug "getOutputFiles called for $name"
+        return project.fileTree(project.projectDir,{
+            include "build/$subDir/**"
+        })
+    }
+    @OutputDirectory
+    def getOutDir(){
+        return project.file("build/$subDir")
+    }
+    public MyNpm(){
+        outputs.upToDateWhen{
+            def od=getOutDir()
+            logger.debug "checking $od"
+            if (! od.exists()) return false;
+            return true
+        }
+    }
+}
+project.ext.pkgVersion=null
+File versionFile=new File(project.projectDir,"public/version.js")
+task createVersion<< {
+    if (!project.hasProperty('packageVersion')) {
+        SimpleDateFormat f = new SimpleDateFormat('YYYYMMdd')
+        project.pkgVersion=f.format(new Date())
+    } else {
+        project.pkgVersion = packageVersion
+    }
+    if (! versionFile.getParentFile().isDirectory()) versionFile.getParentFile().mkdirs()
+    versionFile.withWriter {wr->
+        wr.println("window.cm_version=\"$project.pkgVersion\";")
+    }
+}
+
+task release(type: MyNpm){
+    subDir="release"
+	args=["run","release"]
+    setExecOverrides({
+        it.environment.put('VERSION_FILE',versionFile.getCanonicalPath())
+    })
+	dependsOn npmInstall,createVersion
+}
+task debug(type: MyNpm){
+    subDir="debug"
+	args=["run","debug"]
+    setExecOverrides({
+        it.environment.put('VERSION_FILE',versionFile.getCanonicalPath())
+    })
+	dependsOn npmInstall,createVersion
+}

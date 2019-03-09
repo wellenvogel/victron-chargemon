@@ -1,0 +1,179 @@
+import java.text.SimpleDateFormat
+import org.apache.commons.net.ftp.*
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder
+import org.eclipse.jgit.lib.Repository
+import org.eclipse.jgit.lib.ObjectId
+import org.gradle.api.*
+buildscript{
+	repositories{
+		mavenCentral()
+	}
+    dependencies{
+        classpath localGroovy()
+        classpath 'com.netflix.nebula:gradle-ospackage-plugin:3.6.1'
+        classpath 'commons-net:commons-net:3.3'
+        classpath 'org.eclipse.jgit:org.eclipse.jgit:4.6.0.201612231935-r'
+    }
+}
+
+repositories{
+	mavenCentral()
+}
+
+
+void checkGitVersion(String version){
+    logger.info("checking for git tag $version")
+    FileRepositoryBuilder builder=new FileRepositoryBuilder()
+    Repository repo=builder.readEnvironment().findGitDir(project.buildDir).setMustExist(true).build()
+    ObjectId head=repo.resolve("HEAD")
+    logger.info "current git commit=$head.name"
+    def tags=repo.getTags()
+    def tagCommit=tags.get(version)
+    assert tagCommit,"unable to find tag $version"
+    ObjectId tagResolved=repo.resolve(tagCommit.getName())
+    assert tagResolved.getName() == head.getName(),"found $version ($tagResolved.name) but this is not the current HEAD"
+    logger.info "version $version resolves to $tagCommit"
+}
+
+
+if (! project.hasProperty('packageVersion')){
+    SimpleDateFormat f=new SimpleDateFormat('YYYYMMdd')
+    project.ext.buildversion=f.format(new Date())
+}
+else{
+    project.ext.buildversion=project.packageVersion
+}
+
+
+description="Victron charger monitor (GUI)"
+apply plugin: 'java'
+
+apply plugin: 'nebula.ospackage-base'
+
+def taskgroup='chargemon'
+
+task testGit<<{
+    try {
+        checkGitVersion((project.release ? "release-" : "") + project.buildversion)
+    }catch (Error t){
+        if (!project.hasProperty("ignoreGit")) throw t;
+        logger.lifecycle "### ignoring failed GIT check ###"
+    }
+}
+
+
+
+["debug","release","clean"].each { tt ->
+    def vt=tasks.create(name: "${tt}Gui",type: GradleBuild) { GradleBuild b->
+        b.setDir("gui")
+        b.setTasks([tt])
+
+    }
+    if (tt == "clean"){
+        clean.dependsOn vt
+    }
+    else{
+        build.dependsOn vt
+    }
+}
+
+def guiVersionFile=new File(project.buildDir,"version.py")
+def serverVersionFile=new File(project.buildDir,"server_version.py")
+
+
+task pkgVersion<<{
+    ospackage.version=project.buildversion
+    println "package version $ospackage.version"
+    [guiVersionFile,serverVersionFile].each{
+        if (! it.getParentFile().isDirectory()) it.getParentFile().mkdirs()
+        it.withWriter {wr->
+            wr.println("VERSION=\"$ospackage.version\"")
+        }
+    }
+}
+
+
+def emptyBase=new File(project.buildDir,"empty")
+ospackage {
+    group taskgroup
+    //release='3'
+    os = LINUX // only applied to RPM
+    packageGroup='misc'
+    packageName='chargemon-gui'
+    requires 'python-pyudev'
+    requires 'python-serial'
+    user='root'
+    into ('/usr/lib/chargemon') {
+        from('gui/build/release') {
+            into 'gui'
+        }
+        from('server') {
+            include "*.py"
+            into "server"
+            fileMode 0755
+        }
+        from(guiVersionFile.getParentFile()){
+            into "gui"
+            include guiVersionFile.getName()
+        }
+        from(serverVersionFile.getParentFile()){
+            into "server"
+            include serverVersionFile.getName()
+        }
+    }
+    into ('/usr/lib/systemd/system'){
+        from("server") {
+            include 'chargemon.service'
+        }
+    }
+    into ('/etc/sysconfig'){
+        from("server") {
+            include 'chargemon'
+        }
+    }
+}
+
+
+
+
+task releaseRpm(type: Rpm) {
+    group taskgroup
+    arch = I386
+    dependsOn pkgVersion
+}
+
+task releaseDeb(type: Deb) {
+    group taskgroup
+    dependsOn 'releaseGui',pkgVersion
+}
+
+task release{
+    group taskgroup
+    description "build all release stuff"
+    doLast {
+        println "all release packages have been build"
+    }
+    dependsOn testGit, releaseRpm, releaseDeb
+
+}
+task beta{
+    group taskgroup
+    description "build all beta stuff"
+    doLast {
+        println "all beta packages have been build"
+    }
+    dependsOn releaseRpm, releaseDeb
+
+}
+
+
+afterEvaluate{
+    tasks.withType(org.gradle.api.tasks.GradleBuild.class){GradleBuild b->
+        b.dependsOn pkgVersion
+        b.doFirst{
+            startParameter.projectProperties.put('packageVersion',project.buildversion)
+        }
+    }
+}
+
+

@@ -15,8 +15,8 @@ import Constants
 
 class HTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
 
-  def __init__(self, RequestHandlerClass,port,controller):
-    self.basedir =os.path.join(os.path.dirname(os.path.relpath(__file__)),"gui")
+  def __init__(self, RequestHandlerClass,port,controller,basedir):
+    self.basedir =basedir
     self.overwrite_map = ({
       '.png': 'image/png',
       '.js': 'text/javascript; charset=utf-8'

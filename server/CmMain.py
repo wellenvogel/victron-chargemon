@@ -20,13 +20,15 @@ import getopt
 class CmMain:
   def __init__(self,argv):
     try:
-      opts,args=getopt.getopt(argv[1:],'p:b:d')
+      opts,args=getopt.getopt(argv[1:],'p:b:dl:g:')
     except getopt.GetoptError as err:
       print str(err)
       self.usage()
       raise Exception
     port=8080
     baud=19200
+    logdir="."
+    guibase="gui"
     self.query=0
     for o, a in opts:
       if o == '-p':
@@ -35,6 +37,18 @@ class CmMain:
         baud=int(a)
       if o == '-d':
         self.query=1
+      if o == '-l':
+        logdir=os.path.expanduser(a)
+        if not os.path.exists(logdir):
+          print "trying to create logdir %s"%(logdir)
+          os.makedirs(logdir)
+      if o == '-g':
+        guibase=os.path.expanduser(a)
+        if not os.path.isabs(guibase):
+          guibase=os.path.join(os.path.dirname(__file__),guibase)
+        if not os.path.exists(guibase):
+          raise Exception("gui base %s not found"%guibase)
+    self.guibase=guibase
     self.webPort=port
     self.serialPort=args[0]
     self.baud=baud
@@ -43,15 +57,17 @@ class CmMain:
     self.serial=None
     self.logger = logging.getLogger(Constants.LOGNAME)
     self.logger.setLevel(logging.INFO)
-    handler = logging.handlers.TimedRotatingFileHandler(filename="cmserver.log", when="D")
+    handler = logging.handlers.TimedRotatingFileHandler(filename=os.path.join(logdir,"cmserver.log"), when="D")
     handler.setFormatter(logging.Formatter("%(asctime)s-%(message)s"))
     self.logger.addHandler(handler)
     self.logger.info("####cmserver started, port=%s,baud=%d####",self.serialPort,baud)
   def usage(self):
-    print "usage: XXX [-p port] [-b baud] [-d] serialDevice"
+    print "usage: XXX [-p port] [-b baud] [-d] [-l logdir] [-g basedir] serialDevice"
     print "           -p - port for webserver"
     print "           -b baudrate, default 19200"
     print "           -d do queries on stdout"
+    print "           -l basedir for logging, e.g. ~/.chargemon"
+    print "           -g guibase the basedir for the static files to be served"
     print "           serialDevice either path or usb:<usbid>"
 
   def usbIdFromPath(self,path):
@@ -81,7 +97,7 @@ class CmMain:
     return port
   def run(self):
     controller=CmController(None)
-    server=HTTPServer(HTTPHandler,self.webPort,controller)
+    server=HTTPServer(HTTPHandler,self.webPort,controller,self.guibase)
     serverThread=threading.Thread(target=self.runServer,args=[server])
     serverThread.setDaemon(True)
     serverThread.setName("HTTPServer")
