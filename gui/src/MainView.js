@@ -9,7 +9,7 @@ import ItemUpdater from './components/ItemUpdater.jsx';
 
 const url="/control/command?cmd=state";
 const ELEMENTS=["V","I","VPV","PPV"];
-const STATE_ELEMENTS=['Connection','CS','CState','CTime','COutput','Time'];
+const STATE_ELEMENTS=['Connection','CS','CState','CTime','CEnabled','CRemain','COutput','Time'];
 class MainView extends Component {
 
     constructor(props){
@@ -19,6 +19,7 @@ class MainView extends Component {
         this.onOkClick=this.onOkClick.bind(this);
         this.fetchData=this.fetchData.bind(this);
         this.timer=undefined;
+        this.active=false;
     }
     fetchData(){
         let self=this;
@@ -32,6 +33,7 @@ class MainView extends Component {
             }
             return response.json()
         }).then(function(jsonData){
+            if (! self.active) return;
             if (jsonData.status === 'OK') {
                 self.setState({error: undefined, data: true});
                 ELEMENTS.concat(STATE_ELEMENTS).forEach(function(el){
@@ -49,9 +51,11 @@ class MainView extends Component {
         return true;
     }
     componentDidMount(){
+        this.active=true;
         this.fetchData();
     }
     componentWillUnmount(){
+        this.active=false;
         window.clearTimeout(this.timer);
     }
     findByName(data,name){

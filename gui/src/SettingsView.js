@@ -12,8 +12,12 @@ const COMMANDS={
     state: 'state',
     set: 'show',
     history: 'history',
+    switchon: 'on',
+    switchoff: 'off',
+    "set enabled 0": 'disable',
     teston: 'teston',
     testoff: 'testoff',
+    "set enabled 1": 'enable',
     reset: 'reset'
 };
 
@@ -121,7 +125,7 @@ class SettingsView extends Component {
                               <Button className={"fixedCommandButton"+addClass}
                                       onClick={function(){self.startCommand(cmd)}}
                                       theme={CommandTheme}
-                                      key={cmd}
+                                      key={cmd.replace(" ","")}
                                   >{COMMANDS[cmd]}
 
                               </Button>

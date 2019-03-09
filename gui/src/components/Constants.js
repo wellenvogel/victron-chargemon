@@ -11,7 +11,9 @@ export default {
             'CTime': 'main.ctime',
             'COutput':'main.coutput',
             'Connection':'main.connection',
-            'Time': 'main.time'
+            'Time': 'main.time',
+            'CEnabled': 'main.enabled',
+            'CRemain': 'main.remain'
         },
         settings:{
             'command':'settings.command'

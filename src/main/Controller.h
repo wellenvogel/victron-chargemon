@@ -21,7 +21,8 @@ class Controller{
     FloatTime,  //wait for the minimal float time (FloatTime), output off
     OnMinTime,  //output on, wait for MinTime to pass
     OnExtended, //still on after min time if the voltage exceeds KeepOnVoltage
-    TestOn      //switch on for SETTINGS_TEST_TIME
+    TestOn,     //switch on for SETTINGS_TEST_TIME
+    TryOn       //try to switch on if we have a connection and are above switch off
   } State;
 
   typedef enum {
@@ -40,7 +41,7 @@ class Controller{
     settingsMinTime=Settings::itemIndex(SETTINGS_MIN_TIME);
     settingsMaxTime=Settings::itemIndex(SETTINGS_MAX_TIME);
     settingsOnVoltage=Settings::itemIndex(SETTINGS_KEEP_VOLTAGE);
-    settingsOffVoltage=Settings::itemIndex(SETTINGS_OFF_VOLTAGE);
+    settingsOffVoltage=Settings::itemIndex;(SETTINGS_OFF_VOLTAGE);
     settingsOnTime=Settings::itemIndex(SETTINGS_ON_TIME);
     settingsEnabled=Settings::itemIndex(SETTINGS_ENABLED);
   }
@@ -105,10 +106,40 @@ class Controller{
     return false;
   }
 
-  bool checkElapsedSetting(byte index){
+  bool checkStateTime(){
+    byte index=settingsTimeForState(state);
+    if (index == 0) return false;
     int iv=Settings::getCurrentValue(index);
     if (iv && checkElapsed(iv)) return true;
     return false;
+  }
+
+  byte settingsTimeForState(State state){
+    byte rt=0;
+    switch(state){
+      case WaitFloat:
+        rt=settingsFloatTime;
+        break;
+      case OnMinTime:
+        rt=settingsMinTime;
+        break;
+      case OnExtended:
+        rt=settingsMaxTime;
+        break;
+      case TestOn:
+        rt=settingsOnTime;
+        break;    
+    }
+    return rt;
+  }
+
+  long getRemainTime(){
+    byte settingsIndex=settingsTimeForState(state);
+    if (settingsIndex == 0) return 0;
+    long iv=Settings::getCurrentValue(settingsIndex);
+    if (iv == 0) return 0;
+    long current=TimeBase::timeSeconds();
+    return iv-(current-lastChange);
   }
 
 
@@ -120,6 +151,7 @@ class Controller{
       case OnMinTime:  return "OnMinTime";
       case OnExtended: return "OnExtended";
       case TestOn:     return "TestOn";
+      case TryOn:      return "TryOn";
     }
     return "Unknown";
   }
@@ -135,17 +167,30 @@ class Controller{
     }
     setOutput();
   }
+
+  void tryOn(){
+    if (statusToOutput(state)) return;
+    changeState(TryOn);
+    doLoop();
+  }
+  void forceOff(){
+    changeState(Init);
+    return;
+  }
   void loop(){
     doLoop();
     setLed();
   }
   void doLoop(){
+    if (lastChange == 0){
+      lastChange=TimeBase::timeSeconds(); //seems not to work in init
+    }
     if (Settings::getCurrentValue(settingsEnabled) == 0){
       changeState(Init);
       return;
     }
     if (state == TestOn){
-      if (checkElapsedSetting(settingsOnTime)){
+      if (checkStateTime()){
         changeState(Init);
       }
       return;
@@ -163,6 +208,9 @@ class Controller{
     }
     int iv;
     switch(state){
+      case TryOn:
+        changeState(OnMinTime);
+        return;
       case Init:
         if (info->state == VictronReceiver::Float) changeState(WaitFloat);
         return;
@@ -171,17 +219,17 @@ class Controller{
           changeState(Init);
           return;
         }
-        if (checkElapsedSetting(settingsFloatTime)){
+        if (checkStateTime()){
           changeState(OnMinTime);
           return;
         }
         return;
       case OnMinTime:
-        if (checkElapsedSetting(settingsMaxTime)){
+        if (checkStateTime()){
           changeState(Init,"MaxTime");
           return;
         }
-        if (checkElapsedSetting(settingsMinTime)){
+        if (checkStateTime()){
           changeState(OnExtended,"MinTime");
           return;
         }
@@ -192,7 +240,7 @@ class Controller{
           changeState(Init,"OnVoltage");
           return;
         }
-        if (checkElapsedSetting(settingsMaxTime)){
+        if (checkStateTime()){
           changeState(Init,"MaxTime");
           return;
         }
@@ -205,12 +253,16 @@ class Controller{
     out->sendSerial(statusToString(state),true);
     out->writeNumberPrefix(num);
     out->sendSerial("CTime=");
-    char buf[10];
-    snprintf(buf,10,"%d",(TimeBase::timeSeconds()-lastChange));
-    out->sendSerial(buf,true);
+    out->sendSeriali((long)(TimeBase::timeSeconds()-lastChange),true);
     out->writeNumberPrefix(num);
     out->sendSerial("COutput=");
     out->sendSerial(statusToOutput(state)?"On":"Off",true);
+    out->writeNumberPrefix(num);
+    out->sendSerial("CRemain=");
+    out->sendSeriali(getRemainTime(),true);
+    out->writeNumberPrefix(num);
+    out->sendSerial("CEnabled=");
+    out->sendSerial((Settings::getCurrentValue(settingsEnabled) == 0)?"0":"1",true);   
   }
 
   unsigned long getCumulativeOnTime(){

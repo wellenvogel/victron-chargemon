@@ -36,7 +36,9 @@ class CmDefines:
     Item('CS','Charger State'),
     Item('CState','Controller State'),
     Item('CTime','Time in State','s'),
-    Item('COutput','Output State')
+    Item('COutput','Output State'),
+    Item('CEnabled','Controller enabled'),
+    Item('CRemain','Remain in State')
   ]
   SETTINGS=[
     Item('Enabled','Enabled'),

@@ -72,7 +72,7 @@ void handleSerialLine(const char *receivedData) {
     sendNumber(num);
     receiver->sendSerial("##RESET",true);
     Settings::reset(true);
-    Settings::printSettings(receiver,num);
+    Settings::printSettings(receiver,intermediateHandler,num);
     receiver->sendResult(num);
     return;
   }
@@ -125,6 +125,21 @@ void handleSerialLine(const char *receivedData) {
     }
     return;
   }
+  if (strcasecmp(tok,"SWITCHON")==0){
+    sendNumber(num);
+    receiver->sendSerial("##SWITCHON",true);
+    controller->tryOn();
+    printStatus(num);
+    return;
+  }
+   if (strcasecmp(tok,"SWITCHOFF")==0){
+    sendNumber(num);
+    receiver->sendSerial("##SWITCHOFF",true);
+    controller->forceOff();
+    printStatus(num);
+    return;
+  }
+ 
 
   sendNumber(num); 
   receiver->sendSerial("##Unknown command: ");
