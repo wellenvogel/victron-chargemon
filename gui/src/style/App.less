@@ -165,7 +165,7 @@ button.fab{
     display: inline-block;
     padding: 0.3em;
   }
-  .freeCommandFrame{
+  .freeCommandButtonFrame{
    .buttonFrame();
   }
 }
@@ -200,6 +200,19 @@ button.fab{
   width: 10em;
 }
 
+.commandFrame(){
+  border: 1px solid @mainColor;
+  padding-left: 0.3em;
+  padding-right: 0.3em;
+  margin-bottom: 0.3em;
+}
+.setCommandFrame{
+ .commandFrame();
+}
+.freeCommandFrame{
+  .commandFrame();
+  margin-top: 0.5em;
+}
 
 .fixedCommandFrame{
   .buttonFrame();

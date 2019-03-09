@@ -96,21 +96,23 @@ class SettingsView extends Component {
         let self=this;
         let Command=function(props){
             return (
-              <div className={"commandBox "+(props.className?props.className:'')}>
-                  <div className="commandInputFrame">
-                  <ManagedInput
-                      className='commandInput'
-                      type='text'
-                      label='Free Command'
-                      onChange={self.changeCommand}
-                      value={self.command}
-                      onKeyPress={self.onKeyPress}
-                      theme={CommandTheme}
-                      />
-                  </div>
-                  <div className="freeCommandFrame">
-                    <Button className="runCommandButton" onClick={self.startFreeCommand} theme={CommandTheme}>Start</Button>
-                  </div>
+                <div className={"commandBox "+(props.className?props.className:'')}>
+                    <div className="freeCommandFrame">
+                        <div className="commandInputFrame">
+                            <ManagedInput
+                                className='commandInput'
+                                type='text'
+                                label='Free Command'
+                                onChange={self.changeCommand}
+                                value={self.command}
+                                onKeyPress={self.onKeyPress}
+                                theme={CommandTheme}
+                                />
+                        </div>
+                        <div className="freeCommandButtonFrame">
+                            <Button className="runCommandButton" onClick={self.startFreeCommand} theme={CommandTheme}>Start</Button>
+                        </div>
+                    </div>
                   <div className="fixedCommands">
                       {Object.keys(COMMANDS).map(function(cmd){
                           let addClass=(cmd == 'reset')?" danger":"";
