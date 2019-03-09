@@ -61,6 +61,7 @@ class CmMain:
     handler.setFormatter(logging.Formatter("%(asctime)s-%(message)s"))
     self.logger.addHandler(handler)
     self.logger.info("####cmserver started, port=%s,baud=%d####",self.serialPort,baud)
+    self.logger.info("basedir=%s",self.guibase)
   def usage(self):
     print "usage: XXX [-p port] [-b baud] [-d] [-l logdir] [-g basedir] serialDevice"
     print "           -p - port for webserver"

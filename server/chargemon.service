@@ -5,8 +5,8 @@ After=syslog.target network.target
 
 [Service]
 User=pi
-EnvironmentFile=~/etc/sysconfig/chargemon
-ExecStart=/usr/lib/chargemon/server/CmMain.py -g ../gui/ $PORT_OPTION $LOG_OPTION $DEVICE_OPTION
+EnvironmentFile=-/etc/sysconfig/chargemon
+ExecStart=/usr/lib/chargemon/server/CmMain.py -g ../gui/ $PORT_OPTION $LOGDIR_OPTION $DEVICE_OPTION
 KillMode=control-group
 Restart=always
 TimeoutStopSec=10
