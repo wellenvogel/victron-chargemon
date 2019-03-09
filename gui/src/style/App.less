@@ -153,23 +153,52 @@ button.fab{
   .toolbarButton("icons/arrow_back.svg");
 }
 
+.buttonFrame(){
+  width: 33%;
+  padding: 0.3em;
+  display:inline-block;
+}
 .commandBox{
   .mainItems();
-  .commandInput{
-    width: 70%;
+  .commandInputFrame{
+    width: 66%;
     display: inline-block;
+    padding: 0.3em;
   }
-  .runCommandButton{
-    width: 30%;
-    display: inline-block;
-    background-color: @mainColor ;
-    color: white !important;
+  .freeCommandFrame{
+   .buttonFrame();
   }
+}
+
+.blink_me(){
+  animation: blinker 1s linear infinite;
+}
+
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
+}
+
+.resultItems(){
+  border: 1px solid @mainColorDimmed;
+  padding: 0.5em;
+  overflow: auto;
 }
 .commandResult{
   .mainItems();
   white-space: pre;
-  border: 1px solid @mainColorDimmed;
-  padding: 0.5em;
-  overflow: auto;
+  .resultItems();
+}
+.runningIndicator{
+  .mainItems();
+  .blink_me();
+}
+
+
+.fixedCommandFrame{
+  .buttonFrame();
+}
+.fixedCommands{
+  padding-bottom: 1em;
 }

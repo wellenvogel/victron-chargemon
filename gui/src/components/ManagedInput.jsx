@@ -31,6 +31,7 @@ class ManagedInput extends Component{
             onChange={this.inputChanged}
             type={this.props.type}
             onKeyPress={this.onKeyPress}
+            theme={this.props.theme?this.props.theme:undefined}
             >
         </Input>
         )
@@ -39,6 +40,7 @@ class ManagedInput extends Component{
 ManagedInput.propTypes={
     onChange: PropTypes.func.isRequired,
     onKeyPress: PropTypes.func,
-    type: PropTypes.string.isRequired
+    type: PropTypes.string.isRequired,
+    theme: PropTypes.object
 };
 export default ManagedInput;

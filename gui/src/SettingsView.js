@@ -4,15 +4,15 @@ import Button from 'react-toolbox/lib/button';
 import ManagedInput from './components/ManagedInput.jsx';
 import Constants from './components/Constants.js';
 import Store from './components/Store.js';
+import CommandTheme from './style/theme/commands.less';
 
 const BASEURL='/control/raw?cmd=';
 const COMMANDS={
     state: 'state',
-    show: 'set',
+    set: 'show',
     history: 'history',
     teston: 'teston',
-    testoff: 'testoff',
-    set: 'set'
+    testoff: 'testoff'
 };
 const buildUrl=function(command){
     let url=BASEURL;
@@ -24,7 +24,7 @@ class SettingsView extends Component {
 
     constructor(props){
         super(props);
-        this.state={command:undefined};
+        this.state={command:undefined,running:false};
         this.command='state';
         Store.setValue(COMMANDKEY,'state');
         this.goBack=this.goBack.bind(this);
@@ -34,9 +34,10 @@ class SettingsView extends Component {
         this.startCommand=this.startCommand.bind(this);
         this.runCommand=this.runCommand.bind(this);
         this.onKeyPress=this.onKeyPress.bind(this);
+        this.startFreeCommand=this.startFreeCommand.bind(this);
     }
     setError(err){
-        this.setState({error:err,data:undefined});
+        this.setState({error:err,data:undefined,running:false});
     }
     runCommand(cmd){
         let self=this;
@@ -57,13 +58,18 @@ class SettingsView extends Component {
             if (jsonData.status !== 'OK'){
                 self.setError(jsonData.info)
             }
-            self.setState({error:undefined,data:jsonData.data});
+            self.setState({error:undefined,data:jsonData.data,running:false});
         })
 
     }
-    startCommand(){
-        this.setState({command:this.command});
-        this.runCommand(this.command);
+    startFreeCommand(){
+        this.startCommand();
+    }
+    startCommand(opt_Command){
+        let cmd=opt_Command||this.command;
+        this.command=cmd;
+        this.setState({command:cmd,running:true});
+        this.runCommand(cmd);
     }
     changeCommand(newval){
         //intentionally no state here as the input handles it ...
@@ -81,15 +87,35 @@ class SettingsView extends Component {
         let Command=function(props){
             return (
               <div className={"commandBox "+(props.className?props.className:'')}>
+                  <div className="commandInputFrame">
                   <ManagedInput
                       className='commandInput'
                       type='text'
-                      label='Command'
+                      label='Free Command'
                       onChange={self.changeCommand}
                       value={self.command}
                       onKeyPress={self.onKeyPress}
+                      theme={CommandTheme}
                       />
-                  <Button className="runCommandButton" onClick={self.startCommand}>Start</Button>
+                  </div>
+                  <div className="freeCommandFrame">
+                    <Button className="runCommandButton" onClick={self.startFreeCommand} theme={CommandTheme}>Start</Button>
+                  </div>
+                  <div className="fixedCommands">
+                      {Object.keys(COMMANDS).map(function(cmd){
+                          return (
+                              <div className='fixedCommandFrame'>
+                              <Button className="fixedCommandButton"
+                                      onClick={function(){self.startCommand(cmd)}}
+                                      theme={CommandTheme}
+                                      key={cmd}
+                                  >{COMMANDS[cmd]}
+
+                              </Button>
+                              </div>
+                          )
+                      })}
+                  </div>
               </div>
             );
         };
@@ -100,6 +126,12 @@ class SettingsView extends Component {
               </div>
           )
         };
+        let Running=function(props){
+          return(
+              <div className="runningIndicator">
+                  Loading...</div>
+          );
+        };
         return (
             <div className="view settingsView">
                 <ToolBar >
@@ -108,7 +140,10 @@ class SettingsView extends Component {
                     <span className="spacer"/>
                 </ToolBar>
                 <Command/>
-                <Result data={this.state.data}/>
+                {this.state.running ?
+                    <Running/>:
+                    <Result data={this.state.data}/>
+                }
             </div>
         );
     }
