@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import ToolBar from './components/ToolBar';
 import Button from 'react-toolbox/lib/button';
 import ManagedInput from './components/ManagedInput.jsx';
+import SetCommand from './components/SetCommand.jsx';
 import Constants from './components/Constants.js';
 import Store from './components/Store.js';
 import CommandTheme from './style/theme/commands.less';
@@ -26,6 +27,7 @@ class SettingsView extends Component {
         super(props);
         this.state={command:undefined,running:false};
         this.command='state';
+        this.setCommand='';
         Store.setValue(COMMANDKEY,'state');
         this.goBack=this.goBack.bind(this);
         this.onOkClick=this.onOkClick.bind(this);
@@ -35,6 +37,7 @@ class SettingsView extends Component {
         this.runCommand=this.runCommand.bind(this);
         this.onKeyPress=this.onKeyPress.bind(this);
         this.startFreeCommand=this.startFreeCommand.bind(this);
+        this.changeSetCommand=this.changeSetCommand.bind(this);
     }
     setError(err){
         this.setState({error:err,data:undefined,running:false});
@@ -74,6 +77,9 @@ class SettingsView extends Component {
     changeCommand(newval){
         //intentionally no state here as the input handles it ...
         this.command=newval;
+    }
+    changeSetCommand(newval){
+        this.setCommand=newval;
     }
     onKeyPress(key){
         console.log("keypress "+key);
@@ -115,6 +121,18 @@ class SettingsView extends Component {
                               </div>
                           )
                       })}
+                  </div>
+                  <div className="setCommandFrame">
+                      <SetCommand
+                          className='setInputs'
+                          onChange={self.changeSetCommand}
+                          theme={CommandTheme}
+                          value={self.setCommand}/>
+                      <div className="setButtonFrame">
+                          <Button className="setButton"
+                                  onClick={function(){self.startCommand(self.setCommand)}}
+                                  theme={CommandTheme}>Set</Button>
+                      </div>
                   </div>
               </div>
             );

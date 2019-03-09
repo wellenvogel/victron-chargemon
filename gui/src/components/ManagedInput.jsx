@@ -25,7 +25,7 @@ class ManagedInput extends Component{
     render(){
         return(
         <Input
-            className={"storeInput "+(this.props.className?this.props.className:"")}
+            className={"managedInput "+(this.props.className?this.props.className:"")}
             label={this.props.label?this.props.label:null}
             value={this.state.value}
             onChange={this.inputChanged}
