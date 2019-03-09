@@ -194,10 +194,18 @@ button.fab{
   .mainItems();
   .blink_me();
 }
+.commandError{
+  .mainItems();
+  .error();
+  width: 10em;
+}
 
 
 .fixedCommandFrame{
   .buttonFrame();
+  .danger{
+    background-color: @errorColor;
+  }
 }
 
 .setCommandFrame{
@@ -207,7 +215,7 @@ button.fab{
   }
   .managedInput{
     display: inline-block;
-    width: 33%;
+    width: 50%;
   }
   .setButtonFrame{
     .buttonFrame();

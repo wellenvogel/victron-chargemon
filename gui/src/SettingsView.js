@@ -13,8 +13,11 @@ const COMMANDS={
     set: 'show',
     history: 'history',
     teston: 'teston',
-    testoff: 'testoff'
+    testoff: 'testoff',
+    reset: 'reset'
 };
+
+
 const buildUrl=function(command){
     let url=BASEURL;
     url+=encodeURIComponent(command);
@@ -60,6 +63,7 @@ class SettingsView extends Component {
         }).then(function(jsonData){
             if (jsonData.status !== 'OK'){
                 self.setError(jsonData.info)
+                return;
             }
             self.setState({error:undefined,data:jsonData.data,running:false});
         })
@@ -109,9 +113,10 @@ class SettingsView extends Component {
                   </div>
                   <div className="fixedCommands">
                       {Object.keys(COMMANDS).map(function(cmd){
+                          let addClass=(cmd == 'reset')?" danger":"";
                           return (
                               <div className='fixedCommandFrame'>
-                              <Button className="fixedCommandButton"
+                              <Button className={"fixedCommandButton"+addClass}
                                       onClick={function(){self.startCommand(cmd)}}
                                       theme={CommandTheme}
                                       key={cmd}
@@ -144,6 +149,13 @@ class SettingsView extends Component {
               </div>
           )
         };
+        let Error=function(props){
+            return (
+                <div className={"commandError "+(props.className?props.className:"")}>
+                    {props.data}
+                </div>
+            )
+        };
         let Running=function(props){
           return(
               <div className="runningIndicator">
@@ -160,7 +172,9 @@ class SettingsView extends Component {
                 <Command/>
                 {this.state.running ?
                     <Running/>:
-                    <Result data={this.state.data}/>
+                    this.state.error?
+                        <Error data={this.state.error}/>:
+                        <Result data={this.state.data}/>
                 }
             </div>
         );

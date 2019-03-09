@@ -2,7 +2,28 @@ import React,{Component} from 'react';
 import assign from 'object-assign';
 import PropTypes from 'prop-types';
 import ManagedInput from './ManagedInput.jsx';
+import ManagedDropdown from './ManagedDropdown.jsx'
+const SETTINGS=[
+    "Enabled",
+    "FloatTime",
+    "MinTime",
+    "KeepOnVoltage",
+    "OffVoltage",
+    "MaxTime",
+    "StatusInterval",
+    "HistorySize",
+    "HistoryInterval",
+    "TestOnTime",
+    "DebugTimeShift"
+];
 
+const buildSetSelect=function(){
+    let rt=[];
+    SETTINGS.map(function(st){
+        rt.push({label:st,value:st})
+    });
+    return rt;
+};
 
 class SetCommand extends Component{
     constructor(props){
@@ -43,16 +64,15 @@ class SetCommand extends Component{
     render(){
         return(
         <div className={'setCommand '+(this.props.className?this.props.className:"")}>
-            <ManagedInput
+            <ManagedDropdown
                 className="setName "
                 label="Name"
                 value={this.name}
                 onChange={this.nameChanged}
-                type="text"
-                onKeyPress={this.onKeyPress}
+                source={buildSetSelect()}
                 theme={this.props.theme?this.props.theme:undefined}
                 >
-            </ManagedInput>
+            </ManagedDropdown>
             <ManagedInput
                 className="setValue "
                 label="Value"
