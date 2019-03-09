@@ -12,6 +12,9 @@ export default {
             'COutput':'main.coutput',
             'Connection':'main.connection',
             'Time': 'main.time'
+        },
+        settings:{
+            'command':'settings.command'
         }
     }
 };

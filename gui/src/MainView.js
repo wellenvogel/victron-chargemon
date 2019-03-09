@@ -7,7 +7,7 @@ import Store from './components/Store.js';
 import ItemUpdater from './components/ItemUpdater.jsx';
 
 
-const url="control/command?cmd=state";
+const url="/control/command?cmd=state";
 const ELEMENTS=["V","I","VPV","PPV"];
 const STATE_ELEMENTS=['Connection','CS','CState','CTime','COutput','Time'];
 class MainView extends Component {
@@ -121,7 +121,7 @@ class MainView extends Component {
     }
     onOkClick(ev){
         console.log("ok clicked");
-        this.props.history.push("/second");
+        this.props.history.push("/settings");
     }
 }
 

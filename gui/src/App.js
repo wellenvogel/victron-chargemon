@@ -5,15 +5,15 @@ import {
 } from 'react-router-dom';
 
 import MainView from './MainView';
-import SecondView from './SecondView';
+import SettingsView from './SettingsView';
 class App extends Component {
   render() {
     return (
         <Router>
             <div className="main">
                 <Route exact path="/" component={MainView}/>
-                <Route path="/first" component={MainView}/>
-                <Route path="/second/" component={SecondView}/>
+                <Route path="/main" component={MainView}/>
+                <Route path="/settings/" component={SettingsView}/>
             </div>
         </Router>
     );

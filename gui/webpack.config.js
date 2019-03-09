@@ -42,6 +42,14 @@ module.exports = function(env) {
                         }
                 },
                 {
+                    test: /style\/fonts\/.*/,
+                    loader: 'file-loader',
+                    query:{
+                        outputPath: './fonts',
+                        name: '[name].[ext]'
+                    }
+                },
+                {
                     test: /node_modules.react-toolbox.*\.css$/,
                     use: [
                         "style-loader",
@@ -80,7 +88,7 @@ module.exports = function(env) {
                         {
                             loader: MiniCssExtractPlugin.loader
                         },
-                        "css-loader?-url",
+                        "css-loader",
                         {
                             loader:"less-loader",
                             options:{

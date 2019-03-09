@@ -79,7 +79,7 @@ button.fab{
 }
 
 .mainItems() {
-  width: 20em;
+  width: @mainWidth;
   margin-left: auto;
   margin-right: auto;
 }
@@ -141,10 +141,22 @@ button.fab{
   font-size: 2em;
 }
 
-.mainView .toolbar .settingsButton {
-  background-image: url(icons/settings.svg);
+.toolbarButton(@icon){
   background-repeat: no-repeat;
   background-size: contain;
+  background-image: url(@icon);
+}
+.mainView .toolbar .settingsButton {
+ .toolbarButton("icons/settings.svg");
+}
+.settingsView .toolbar .buttonBack{
+  .toolbarButton("icons/arrow_back.svg");
 }
 
-
+.commandBox{
+  .mainItems();
+}
+.commandResult{
+  .mainItems();
+  white-space: pre;
+}
