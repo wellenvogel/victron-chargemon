@@ -1,6 +1,8 @@
 @import "flexbox";
 @import "defines";
 
+@import "fonts.css";
+
 
 
 
@@ -21,6 +23,9 @@ html, body, #root, .main {
   height: 100%;
   overflow: hidden;
   position: relative;
+  * {
+    box-sizing: border-box;
+  }
 }
 
 
@@ -69,10 +74,29 @@ button.fab{
   .flex(1);
 }
 
-.valueDisplay{
+.chargerItems{
+  overflow: auto;
+}
+
+.mainItems() {
   width: 20em;
   margin-left: auto;
   margin-right: auto;
+}
+
+.stateDisplay {
+  .mainItems();
+  .valueDisplay {
+    font-size: 0.5em;
+    width: 50%;
+    display: inline-block;
+  }
+}
+.dataDisplay {
+  .mainItems();
+}
+
+.valueDisplay {
   margin-top: 0.5em;
   border: 1px solid @borderColor;
   position: relative;
@@ -84,7 +108,7 @@ button.fab{
   }
   .value {
     text-align: center;
-    font-size: 3em;
+    font-size: 2em;
   }
   .unit {
     position: absolute;
@@ -94,12 +118,33 @@ button.fab{
   }
 }
 
+.valueDisplay.ok {
+  background-color: @okColor;
+}
+.valueDisplay.on {
+  background-color: @okColor;
+}
+.valueDisplay.fail {
+  background-color: @valueErrorColor;
+}
+
+.valueDisplay.waiting {
+  background-color: @valueWaitingColor;
+}
+
+
 .error {
   margin: auto;
   color: @errorColor;
   border: 1px solid @borderColor;
   padding: 1em;
   font-size: 2em;
+}
+
+.mainView .toolbar .settingsButton {
+  background-image: url(icons/settings.svg);
+  background-repeat: no-repeat;
+  background-size: contain;
 }
 
 

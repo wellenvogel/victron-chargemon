@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import ToolBar from './components/ToolBar';
-import IconButton from 'react-toolbox/lib/button';
+import Button from 'react-toolbox/lib/button';
 import Value from './components/Value.jsx';
 import Constants from './components/Constants.js';
 import Store from './components/Store.js';
@@ -9,6 +9,7 @@ import ItemUpdater from './components/ItemUpdater.jsx';
 
 const url="control/command?cmd=state";
 const ELEMENTS=["V","I","VPV","PPV"];
+const STATE_ELEMENTS=['Connection','CS','CState','CTime','COutput','Time'];
 class MainView extends Component {
 
     constructor(props){
@@ -33,7 +34,7 @@ class MainView extends Component {
         }).then(function(jsonData){
             if (jsonData.status === 'OK') {
                 self.setState({error: undefined, data: true});
-                ELEMENTS.forEach(function(el){
+                ELEMENTS.concat(STATE_ELEMENTS).forEach(function(el){
                     let elementData=self.findByName(jsonData.data,el);
                     Store.setValue(Constants.keys.main[el],elementData,true);
                 });
@@ -59,6 +60,7 @@ class MainView extends Component {
         }
         return null;
     }
+
     render() {
         let info=this.state;
         let title=info.title||"Charger State";
@@ -68,7 +70,23 @@ class MainView extends Component {
                     {
                         ELEMENTS.map(function(el){
                             let UValue=ItemUpdater(Value,Store,Constants.keys.main[el]);
-                            return <UValue key={el}/>
+                            return <UValue key={el} className={el+"Value"}/>
+                        })
+
+                    }
+                </div>
+            )
+        };
+        let StateDisplay=function(props){
+            let count=0;
+            return(<div className={props.className + " stateDisplay"}>
+                    {
+                        STATE_ELEMENTS.map(function(el){
+                            let UValue=ItemUpdater(Value,Store,Constants.keys.main[el]);
+                            count++;
+                            return <UValue key={el}
+                                           className={el+"Value"
+                                                +((count%2 != 0)?" odd":" even")}/>
                         })
 
                     }
@@ -76,14 +94,17 @@ class MainView extends Component {
             )
         };
         return (
-            <div className="view exampleView">
+            <div className="view mainView">
                 <ToolBar >
                     <span className="toolbar-label">{title}</span>
                     <span className="spacer"/>
-                    <IconButton icon="done" onClick={this.onOkClick}/>
+                    <Button className="settingsButton" onClick={this.onOkClick}/>
                 </ToolBar>
                 {info.data?
-                    <DataDisplay />:null
+                    <div className="chargerItems">
+                        <DataDisplay />
+                        <StateDisplay/>
+                    </div>    :null
                 }
                 {info.error?
                     <div className="error">{info.error}</div>

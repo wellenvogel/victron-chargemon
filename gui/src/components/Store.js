@@ -10,6 +10,9 @@ class Store {
     compare(oldval,newval){
         if (typeof(newval) !== typeof (oldval)) return false;
         if (typeof (newval) === 'function') return true;
+        if (oldval === null && newval !== null) return false;
+        if (newval === null && oldval !== null) return false;
+        if (newval === null && oldval === null) return true;
         if (typeof(newval) === 'object'){
             if (Object.keys(newval).length != Object.keys(oldval).length) return false;
             for (let k in oldval){

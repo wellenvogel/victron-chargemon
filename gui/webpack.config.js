@@ -27,18 +27,19 @@ module.exports = function(env) {
         module: {
             rules: [
                 {
-                    test: /\.js$/,
+                    test: /\.(js|jsx)$/,
                     exclude: /node_modules/,
                     use: [
                         'babel-loader',
                     ],
                 },
                 {
-                    test: /\.jsx$/,
-                    exclude: /node_modules/,
-                    use: [
-                        'babel-loader',
-                    ],
+                    test: /style\/icons\/.*/,
+                    loader: 'file-loader',
+                    query:{
+                        outputPath: './icons',
+                        name: '[name].[ext]'
+                        }
                 },
                 {
                     test: /node_modules.react-toolbox.*\.css$/,
