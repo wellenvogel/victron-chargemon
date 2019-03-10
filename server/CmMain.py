@@ -66,7 +66,7 @@ class CmMain:
     print "usage: XXX [-p port] [-b baud] [-d] [-l logdir] [-g basedir] serialDevice"
     print "           -p - port for webserver"
     print "           -b baudrate, default 19200"
-    print "           -d do queries on stdout"
+    print "           -d do queries to log"
     print "           -l basedir for logging, e.g. ~/.chargemon"
     print "           -g guibase the basedir for the static files to be served"
     print "           serialDevice either path or usb:<usbid>"
@@ -116,7 +116,7 @@ class CmMain:
           time.sleep(3)
           controller.setSerial(self.serial)
         except:
-          print traceback.format_exc()
+          self.logger.error(traceback.format_exc())
           self.serial=None
       if self.serial is None or not self.serial.isOpen():
         time.sleep(5)
@@ -126,30 +126,36 @@ class CmMain:
         count += 1
         if self.query != 0:
           self.statusStore.reset()
-          sq = self.serial.sendCommand('status', store=self.statusStore)
-          self.serial.waitForCommand(sq)
-          print "%s: Serial State=%d"%(datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"),self.serial.state)
-          for st in CmDefines.STATUS:
-            v=self.statusStore.getItem(st)
-            print "#%s=%s%s"%(st.display,v.getValue() if v is not None else '???',st.unit)
+          try:
+            sq = self.serial.sendCommand('status', store=self.statusStore)
+            self.serial.waitForCommand(sq)
+            self.logger.info("%s: Serial State=%d"%(datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"),self.serial.state))
+            for st in CmDefines.STATUS:
+              v=self.statusStore.getItem(st)
+              self.logger.info("#%s=%s%s"%(st.display,v.getValue() if v is not None else '???',st.unit))
+          except:
+            self.logger.error("error in status query %s"%(traceback.format_exc()))
+            self.serial.close()
+            continue
           if (count % 20) == 0 and self.serial.isOpen():
             try:
               self.historyStore.reset()
               sq=self.serial.sendCommand('history',store=self.historyStore)
               self.serial.waitForCommand(sq)
             except:
-              print traceback.format_exc()
+              self.logger.error(traceback.format_exc())
               self.serial.close()
-            print "#### HISTORY ###"
+              continue
+            self.logger.info("#### HISTORY ###")
             for h in CmDefines.HISTORY:
               v=self.historyStore.getItem(h)
               if v is not None:
                 val=v.getValue()
                 if h.isMulti:
                   for item in val:
-                    print "#%s=%s%s" % (h.display, item,h.unit)
+                    self.logger.info("#%s=%s%s" % (h.display, item,h.unit))
                 else:
-                  print "#%s=%s%s" % (h.display, val,h.unit)
+                  self.logger.info( "#%s=%s%s" % (h.display, val,h.unit))
         time.sleep(5)
       time.sleep(5)
 
