@@ -38,7 +38,8 @@ class CmDefines:
     Item('CTime','Time in State','s'),
     Item('COutput','Output State'),
     Item('CEnabled','Controller enabled'),
-    Item('CRemain','Remain in State')
+    Item('CRemain','Remain in State'),
+    Item('Ram', 'Available Ram')
   ]
   SETTINGS=[
     Item('Enabled','Enabled'),

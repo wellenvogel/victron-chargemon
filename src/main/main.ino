@@ -23,9 +23,18 @@ byte speedUpIndex=-1;
 
 const char DELIMITER[] = " ";
 boolean valuesValid=false;
+int freeRam () {
+  extern int __heap_start, *__brkval; 
+  int v; 
+  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval); 
+}
+
 void printStatus(int num=0){
   sendNumber(num);
   receiver->sendSerial("#STATUS",true);
+  sendNumber(num);
+  receiver->sendSerial("Ram=");
+  receiver->sendSeriali(freeRam(),true);
   sendNumber(num);
   receiver->sendSerial("Connection=");
   receiver->sendSerial(valuesValid?"OK":"FAIL",true);
