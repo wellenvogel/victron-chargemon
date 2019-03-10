@@ -114,7 +114,7 @@ class Settings{
   }
   
 };
-const Settings::SettingItem Settings::settings[]={
+const Settings::SettingItem Settings::settings[] ={
   //typically 0 means item is off
   {SETTINGS_ENABLED,1},
   {SETTINGS_FLOAT_TIME,600},              //float time in seonds before switching on
@@ -123,7 +123,7 @@ const Settings::SettingItem Settings::settings[]={
   {SETTINGS_OFF_VOLTAGE,12300},           //voltage(mv) if below - immediately switch off (emergency)
   {SETTINGS_MAX_TIME,120*60},             //max time (in seconds) we keep on before we wait for float again
   {SETTINGS_STATUS_INTERVAL,5},           //time in s between status reports
-  {SETTINGS_HISTORY_SIZE,180,10,400},     //number of entries in history, be carefull with the max. - memory exhausted... - default for 24h
+  {SETTINGS_HISTORY_SIZE,180,10,360},     //number of entries in history, be carefull with the max. - memory exhausted... - default for 24h
   {SETTINGS_HISTORY_INTERVAL,480,2,3600}, //interval in seconds between history entries - default 8 minutes
   {SETTINGS_ON_TIME,300,0,3600},          //time to stay on for testing (seconds)
   {SETTINGS_SPEED_UP,0,0,8}               //speed up handling by 2^thisValue
