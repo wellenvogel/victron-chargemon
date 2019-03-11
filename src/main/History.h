@@ -15,7 +15,8 @@
  */
 
 int hdebug=0;
-
+PM(CWRITEENTRY, "##write entry: ");
+PM(CWEOVF,"##write entry: overflow");
 class History{
   private:
   uint16_t *history=NULL;
@@ -83,17 +84,16 @@ class History{
     return entry;
   }
 
-   
   bool writeEntry(int voltage,Controller::State state,VictronReceiver::SimplifiedState victronState,uint16_t timeToReport){
     if (history == NULL){
       //memory overflow - new returned 0
       if (hdebug){
-        Serial.println("##write entry: overflow");
+        Serial.println(FH(CWEOVF));
       }
       return;
     }
     if(hdebug){
-      Serial.print("##write entry: ");
+      Serial.print(FH(CWRITEENTRY));
       Serial.print(writePointer,10);
       Serial.print(",");
       Serial.print(hasWrapped,2);

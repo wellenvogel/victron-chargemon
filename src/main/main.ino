@@ -9,7 +9,6 @@
 #include "TimeBase.h"
 
 
-
 SerialReceiver *receiver=NULL;
 AlternateReceiver *alternateReceiver=NULL;
 VictronReceiver *victron=NULL;
@@ -29,19 +28,22 @@ int freeRam () {
   return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval); 
 }
 
-
+PM(CSTATUS,"#STATUS");
+PM(CRAM,"Ram=");
+PM(CCONNECTION,"Connection=");
+PM(CTIME,"Time=");
 
 void printStatus(int num=0){
   sendNumber(num);
-  receiver->sendSerial("#STATUS",true);
+  receiver->sendSerial(FH(CSTATUS),true);
   sendNumber(num);
-  receiver->sendSerial("Ram=");
+  receiver->sendSerial(FH(CRAM));
   receiver->sendSeriali(freeRam(),true);
   sendNumber(num);
-  receiver->sendSerial("Connection=");
+  receiver->sendSerial(FH(CCONNECTION));
   receiver->sendSerial(valuesValid?"OK":"FAIL",true);
   sendNumber(num);
-  receiver->sendSerial("Time=");
+  receiver->sendSerial(FH(CTIME));
   receiver->sendSeriali(TimeBase::secondsSinceStart(),true);
   victron->writeStatus(receiver,num);
   controller->writeStatus(receiver,num);
@@ -65,6 +67,15 @@ void sendNumber(int num){
   if (receiver) receiver->writeNumberPrefix(num);
 }
 
+PM(CSET,"##SET");
+PM(CRESET,"##RESET");
+PM(CHISTORY,"##HISTORY");
+PM(CTESTON,"##TESTON");
+PM(CTESTOFF,"##TESTOFF");
+PM(CSETFAIL,"Set failed");
+PM(CSWITCHON,"##SWITCHON");
+PM(CSWITCHOFF,"##SWITCHOFF");
+PM(CUNKNOWN,"##Unknown command: ");
 void handleSerialLine(const char *receivedData) {
   char * tok = strtok(receivedData, DELIMITER);
   if (! tok) return;
@@ -81,7 +92,7 @@ void handleSerialLine(const char *receivedData) {
   }
   if (strcasecmp(tok, "RESET") == 0) {
     sendNumber(num);
-    receiver->sendSerial("##RESET",true);
+    receiver->sendSerial(FH(CRESET),true);
     Settings::reset(true);
     Settings::printSettings(receiver,intermediateHandler,num);
     receiver->sendResult(num);
@@ -89,7 +100,7 @@ void handleSerialLine(const char *receivedData) {
   }
   if (strcasecmp(tok, "SET") == 0) {
     sendNumber(num);
-    receiver->sendSerial("##SET",true);
+    receiver->sendSerial(FH(CSET),true);
     char * name = strtok(NULL, DELIMITER);
     if (!name) {
       Settings::printSettings(receiver,intermediateHandler,num);
@@ -102,7 +113,7 @@ void handleSerialLine(const char *receivedData) {
       rt=Settings::setCurrentValue(name,atol(val));
     }  
     if (! rt){
-      receiver->sendResult(num,"SET failed");
+      receiver->sendResult(num,FH(CSETFAIL));
     }
     else{
       Settings::printSettings(receiver,intermediateHandler,num);
@@ -112,21 +123,21 @@ void handleSerialLine(const char *receivedData) {
   }
   if (strcasecmp(tok, "HISTORY") == 0) {
     sendNumber(num);
-    receiver->sendSerial("##HISTORY",true);
+    receiver->sendSerial(FH(CHISTORY),true);
     if (history) history->writeHistory(receiver,intermediateHandler,num);
     receiver->sendResult(num);
     return;
   }
   if (strcasecmp(tok, "TESTON") == 0) {
     sendNumber(num);
-    receiver->sendSerial("##TESTON",true);
+    receiver->sendSerial(FH(CTESTON),true);
     if (Settings::getCurrentValue(SETTINGS_ON_TIME) > 0) controller->changeState(Controller::TestOn);
     printStatus(num);
     return;  
   }
   if (strcasecmp(tok,"TESTOFF")==0){
     sendNumber(num);
-    receiver->sendSerial("##TESTOFF",true);
+    receiver->sendSerial(FH(CTESTOFF),true);
     if (controller->getState()==Controller::TestOn){
       controller->changeState(Controller::Init);
       printStatus(num);
@@ -138,14 +149,14 @@ void handleSerialLine(const char *receivedData) {
   }
   if (strcasecmp(tok,"SWITCHON")==0){
     sendNumber(num);
-    receiver->sendSerial("##SWITCHON",true);
+    receiver->sendSerial(FH(CSWITCHON),true);
     controller->tryOn();
     printStatus(num);
     return;
   }
    if (strcasecmp(tok,"SWITCHOFF")==0){
     sendNumber(num);
-    receiver->sendSerial("##SWITCHOFF",true);
+    receiver->sendSerial(FH(CSWITCHOFF),true);
     controller->forceOff();
     printStatus(num);
     return;
@@ -153,7 +164,7 @@ void handleSerialLine(const char *receivedData) {
  
 
   sendNumber(num); 
-  receiver->sendSerial("##Unknown command: ");
+  receiver->sendSerial(FH(CUNKNOWN));
   receiver->sendSerial(tok,true);
   receiver->sendResult(num,"unknown command");
 }
@@ -163,7 +174,7 @@ class CbHandler : public Callback{
     handleSerialLine(data);
   }
 };
-
+PM(CINITSET,"##INITIALIZED SETTINGS");
 byte loopIdx=-1;
 void setup() {
   receiver=new SerialReceiver(new CbHandler());
@@ -175,7 +186,7 @@ void setup() {
   receiver->sendSerial("start",true);
   bool rt=Settings::reset(false);
   if (rt){
-    receiver->sendSerial("##INITIALIZED SETTINGS",true);
+    receiver->sendSerial(FH(CINITSET),true);
   }
   speedUpIndex=Settings::itemIndex(SETTINGS_SPEED_UP);
   TimeBase::setDebugSpeedUp(Settings::getCurrentValue(speedUpIndex));
@@ -189,14 +200,17 @@ void setup() {
   }
   loopIdx=Settings::itemIndex(SETTINGS_STATUS_INTERVAL);
 }
-
+PM(COVF,"@@OVF");
+PM(CSTATUSCHANGE,"#STATUSCHANGE RECEIVER");
+PM(CSPEEDUPCHANGE,"#SPEEDUP CHANGE=");
+PM(CRESETHISTORY,"#RESETHISTORY, size=");
 void loop() {
   receiver->loop();
   victron->loop();
   controller->loop();
   if (history) history->loop();
   if (alternateReceiver->didOverflow()){
-    Serial.println("@@OVF");
+    Serial.println(FH(COVF));
   }
   unsigned long current=millis();
   if (loopIdx>=0 && Settings::getCurrentValue(loopIdx) && (current - lastout) >= (Settings::getCurrentValue(loopIdx)*1000)){
@@ -206,13 +220,13 @@ void loop() {
   bool ns=victron->valuesValid();
   if (ns != valuesValid){
     valuesValid=ns;
-    receiver->sendSerial("#STATUSCHANGE RECEIVER",true);
+    receiver->sendSerial(FH(CSTATUSCHANGE),true);
     printStatus();
   }
   bool resetHistory=false;
   uint8_t speedUp=Settings::getCurrentValue(speedUpIndex);
   if ( speedUp != TimeBase::getDebugSpeedUp()){
-    receiver->sendSerial("#SPEEDUP CHANGE=");
+    receiver->sendSerial(FH(CSPEEDUPCHANGE));
     receiver->sendSeriali(speedUp,true);
     TimeBase::setDebugSpeedUp(speedUp);
     resetHistory=true;
@@ -226,7 +240,7 @@ void loop() {
     ||
     resetHistory
     ){
-      receiver->sendSerial("#RESETHISTORY, size=");
+      receiver->sendSerial(FH(CRESETHISTORY));
       receiver->sendSeriali(nSize);
       receiver->sendSerial(", interval=");
       receiver->sendSeriali(nInterval,true);

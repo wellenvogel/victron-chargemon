@@ -1,8 +1,17 @@
 #include <Arduino.h>
 #ifndef _RECEIVER_H
 #define _RECEIVER_H
+#define FH(x) (const __FlashStringHelper *)(x)
+#define PM(n,value) static const PROGMEM char n[]=value
 #include "Callback.h"
 int rdebug=0;
+PM(CNWB,"NextWriteBuffer=");
+PM(CNRB2,"NextReadBuffer(2)=");
+PM(CNRB3,"NextReadBuffer(3)=");
+PM(CNRB1,"NextReadBuffer(1)=");
+PM(CRESULT,"#RESULT");
+PM(CERROR," ERROR ");
+PM(COK," OK");
 class Receiver{
   protected:
     Callback *callback;
@@ -61,7 +70,7 @@ class Receiver{
       if (nextWrite >= numBuffers) nextWrite=0;
       writeBuffer=nextWrite;
       if (rdebug){
-        Serial.print("NextWriteBuffer=");
+        Serial.print(FH(CNWB));
         Serial.println(writeBuffer,10);
       }
     }
@@ -71,7 +80,7 @@ class Receiver{
       readBuffer=nextRead;
       if (getReadBuffer()->lineReceived) {
         if (rdebug){
-          Serial.print("NextReadBuffer(1)=");
+          Serial.print(FH(CNRB1));
           Serial.println(readBuffer,10);
         }
         return;
@@ -84,7 +93,7 @@ class Receiver{
         if (buffers[candidate]->lineReceived){
           readBuffer=candidate;
           if (rdebug){
-            Serial.print("NextReadBuffer(2)=");
+            Serial.print(FH(CNRB2));
             Serial.println(readBuffer,10);
           }
           return;
@@ -93,7 +102,7 @@ class Receiver{
       }
       
       if (rdebug){
-        Serial.print("NextReadBuffer(3)=");
+        Serial.print(FH(CNRB3));
         Serial.println(readBuffer,10);
       }
     }
@@ -163,18 +172,34 @@ class Receiver{
     sendSerial(" ");
   }
 
-  void sendResult(int num,const char *error=NULL){
+  void sendResult(int num,const char *error){
     writeNumberPrefix(num);
-    sendSerial("#RESULT");
+    sendSerial(FH(CRESULT));
     if ( ! error){
-      sendSerial(" OK",true);
+      sendSerial(FH(COK),true);
       return;
     }
-    sendSerial(" ERROR ");
+    sendSerial(FH(CERROR));
+    sendSerial(error,true);
+  }
+  void sendResult(int num){
+    writeNumberPrefix(num);
+    sendSerial(FH(CRESULT));
+    sendSerial(FH(COK),true);
+  }
+  void sendResult(int num,const __FlashStringHelper *error){
+    writeNumberPrefix(num);
+    sendSerial(FH(CRESULT));
+    if ( ! error){
+      sendSerial(FH(COK),true);
+      return;
+    }
+    sendSerial(FH(CERROR));
     sendSerial(error,true);
   }
 
   virtual void sendSerial(const char * txt, bool nl=false)=0;
+  virtual void sendSerial(const __FlashStringHelper *txt,bool nl=false)=0;
  
   
 };

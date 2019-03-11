@@ -123,7 +123,7 @@ const Settings::SettingItem Settings::settings[] ={
   {SETTINGS_OFF_VOLTAGE,12300},           //voltage(mv) if below - immediately switch off (emergency)
   {SETTINGS_MAX_TIME,120*60},             //max time (in seconds) we keep on before we wait for float again
   {SETTINGS_STATUS_INTERVAL,5},           //time in s between status reports
-  {SETTINGS_HISTORY_SIZE,150,10,160},     //number of entries in history, be carefull with the max. - memory exhausted... - default for 20h
+  {SETTINGS_HISTORY_SIZE,180,10,240},     //number of entries in history, be carefull with the max. - memory exhausted... - default for 20h
                                           //if too big the history will not be created at all
   {SETTINGS_HISTORY_INTERVAL,480,2,3600}, //interval in seconds between history entries - default 8 minutes
   {SETTINGS_ON_TIME,300,0,3600},          //time to stay on for testing (seconds)

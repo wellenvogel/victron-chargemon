@@ -28,6 +28,7 @@ class AlternateReceiver: public Receiver{
     if (! nl) serial->print(txt);
     else serial->println(txt);
   }
+  virtual void sendSerial(const __FlashStringHelper *txt,bool nl=false){}
   
 };
 AlternateReceiver *AlternateReceiver::instance=NULL;

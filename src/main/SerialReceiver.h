@@ -21,6 +21,10 @@ class SerialReceiver: public Receiver{
     if (! nl) Serial.print(txt);
     else Serial.println(txt);
   }
+  virtual void sendSerial(const __FlashStringHelper *txt,bool nl=false){
+    if (! nl) Serial.print(txt);
+    else Serial.println(txt);
+  }
   
 };
 #define _SERIAL_RECEIVER_H

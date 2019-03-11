@@ -6,6 +6,11 @@
 #include "Settings.h"
 #include "Receiver.h"
 //the controller for the output
+PM(CCSTATE,"CState=");
+PM(CCTIME,"CTime=");
+PM(CCOUTPUT,"COutput=");
+PM(CCREMAIN,"CRemain=");
+PM(CCENABLED,"CEnabled=");
 class Controller{
   public:
   const int PORT=4;
@@ -246,22 +251,22 @@ class Controller{
         }
         return;
      }
-  }  
+  }
   void writeStatus(Receiver *out, int num=0){
     out->writeNumberPrefix(num);
-    out->sendSerial("CState=");
+    out->sendSerial(FH(CCSTATE));
     out->sendSerial(statusToString(state),true);
     out->writeNumberPrefix(num);
-    out->sendSerial("CTime=");
+    out->sendSerial(FH(CCTIME));
     out->sendSeriali((long)(TimeBase::timeSeconds()-lastChange),true);
     out->writeNumberPrefix(num);
-    out->sendSerial("COutput=");
+    out->sendSerial(FH(CCOUTPUT));
     out->sendSerial(statusToOutput(state)?"On":"Off",true);
     out->writeNumberPrefix(num);
-    out->sendSerial("CRemain=");
+    out->sendSerial(FH(CCREMAIN));
     out->sendSeriali(getRemainTime(),true);
     out->writeNumberPrefix(num);
-    out->sendSerial("CEnabled=");
+    out->sendSerial(FH(CCENABLED));
     out->sendSerial((Settings::getCurrentValue(settingsEnabled) == 0)?"0":"1",true);   
   }
 
