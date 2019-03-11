@@ -85,6 +85,13 @@ class History{
 
    
   bool writeEntry(int voltage,Controller::State state,VictronReceiver::SimplifiedState victronState,uint16_t timeToReport){
+    if (history == NULL){
+      //memory overflow - new returned 0
+      if (hdebug){
+        Serial.println("##write entry: overflow");
+      }
+      return;
+    }
     if(hdebug){
       Serial.print("##write entry: ");
       Serial.print(writePointer,10);
@@ -167,6 +174,11 @@ class History{
     return historySize-1;
   }
   void writeHistory(Receiver *out, Callback *callback=NULL,int num=0){
+    if (history == NULL){
+      out->writeNumberPrefix(num);
+      out->sendSerial("OV=true",true);
+      return;
+    }
     int count=numEntries();
     if (! count) return;
     int current=lastWrittenEntry();
