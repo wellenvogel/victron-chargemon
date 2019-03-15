@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import ToolBar from './components/ToolBar';
 import Button from 'react-toolbox/lib/button';
-import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
+import { ComposedChart, Line, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
 import Measure from 'react-measure';
 
 const BASEURL='/control/command?cmd=history';
@@ -137,13 +137,13 @@ class ChartsView extends Component {
                     onResize={self.resizeChart}
                     children={(mp) =>
                   <div ref={mp.measureRef} className="chartContainer">
-                    <LineChart height={self.state.height||DEFAULT_HEIGHT} width={self.state.width||DEFAULT_WIDTH} data={props.values}>
+                    <ComposedChart height={self.state.height||DEFAULT_HEIGHT} width={self.state.width||DEFAULT_WIDTH} data={props.values}>
                         <YAxis label="V"/>
                         <XAxis dataKey="xtick"/>
                         <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
                         <Tooltip/>
                         <Line type="monotone" className="voltageCurve" dataKey="voltage" dot={false}/>
-                    </LineChart>
+                    </ComposedChart>
                   </div>
               }/>
 
