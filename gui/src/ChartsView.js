@@ -115,8 +115,7 @@ class ChartsView extends Component {
                     children={(mp) =>
                   <div ref={mp.measureRef} className="chartContainer">
                     <XYPlot height={self.state.height||DEFAULT_HEIGHT} width={self.state.width||DEFAULT_WIDTH}>
-                        <YAxis tickValues={[6,7,8,9,10,11,12,13,14]} title="V" style={{title:{transform:'rotate(90)'}
-                        }}/>
+                        <YAxis hideLine={false} tickValues={[6,7,8,9,10,11,12,13,14]} tickFormat={v => `${v} V`} left={20}/>
                         <XAxis/>
                         <LineSeries className="voltageCurve" data={props.values} />
                     </XYPlot>
