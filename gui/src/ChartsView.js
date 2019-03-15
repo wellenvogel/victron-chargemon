@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import ToolBar from './components/ToolBar';
 import Button from 'react-toolbox/lib/button';
-import { ComposedChart, Line, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
+import { ComposedChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Bar, Cell } from 'recharts';
 import Measure from 'react-measure';
 
 const BASEURL='/control/command?cmd=history';
@@ -19,7 +19,7 @@ const formatNumber=function(num,digits){
 const formatDate=function(date,withDay){
     let rt={time:formatNumber(date.getHours(),2)+":"+formatNumber(date.getMinutes(),2)};
     if (withDay){
-        rt.day=formatNumber(date.getMonth()+1,2)+"/"+formatNumber(date.getDay(),2);
+        rt.day=formatNumber(date.getMonth()+1,2)+"/"+formatNumber(date.getDate(),2);
     }
     return rt;
 };
@@ -82,10 +82,25 @@ class ChartsView extends Component {
                     dataItem.voltage = parseFloat(itemValues[1]) / 1000;
                     if (dataItem.voltage > max) max = dataItem.voltage;
                     if (dataItem.voltage < min)min = dataItem.voltage;
-                    dataItem.y=dataItem.voltage;
                     dataItem.x=idx;
+                    dataItem.dummyValue=1;
                     dataItem.ctrl = itemValues[2];
                     dataItem.charger = itemValues[3];
+                    dataItem.ctrlColor='grey';
+                    switch(dataItem.ctrl){
+                        case 'OnMinTime':
+                            dataItem.ctrlColor='green';
+                            break;
+                        case 'OnExtended':
+                            dataItem.ctrlColor='green';
+                            break;
+                        case 'TestOn':
+                            dataItem.ctrlColor='green';
+                            break;
+                        case 'WaitFloat':
+                            dataItem.ctrlColor='yellow';
+                            break;
+                    }
                     dataItem.onTime = parseInt(itemValues[4]);
                     values.push(dataItem);
                     idx++;
@@ -137,12 +152,19 @@ class ChartsView extends Component {
                     onResize={self.resizeChart}
                     children={(mp) =>
                   <div ref={mp.measureRef} className="chartContainer">
-                    <ComposedChart height={self.state.height||DEFAULT_HEIGHT} width={self.state.width||DEFAULT_WIDTH} data={props.values}>
+                    <ComposedChart barCategoryGap={-3}  height={self.state.height||DEFAULT_HEIGHT} width={self.state.width||DEFAULT_WIDTH} data={props.values}>
                         <YAxis label="V"/>
                         <XAxis dataKey="xtick"/>
                         <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
                         <Tooltip/>
                         <Line type="monotone" className="voltageCurve" dataKey="voltage" dot={false}/>
+                        <Bar dataKey='dummyValue' >
+                        {
+                            props.values.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={props.values[index].ctrlColor}/>
+                                ))
+                        }
+                        </Bar>
                     </ComposedChart>
                   </div>
               }/>
