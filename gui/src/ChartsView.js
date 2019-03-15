@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import ToolBar from './components/ToolBar';
 import Button from 'react-toolbox/lib/button';
-import {XYPlot,LineSeries,XAxis,YAxis} from 'react-vis';
+import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
 import Measure from 'react-measure';
 
 const BASEURL='/control/command?cmd=history';
@@ -9,6 +9,24 @@ const BASEURL='/control/command?cmd=history';
 const DEFAULT_WIDTH=300;
 const DEFAULT_HEIGHT=300;
 
+const formatNumber=function(num,digits){
+    let rt=num.toFixed(0);
+    while(rt.length < digits){
+        rt="0"+rt;
+    }
+    return rt;
+};
+const formatDate=function(date,withDay){
+    let rt={time:formatNumber(date.getHours(),2)+":"+formatNumber(date.getMinutes(),2)};
+    if (withDay){
+        rt.day=formatNumber(date.getMonth()+1,2)+"/"+formatNumber(date.getDay(),2);
+    }
+    return rt;
+};
+const formatDateToText=function(date,withDay){
+    let dv=formatDate(date,withDay);
+    return dv.day+" "+dv.time;
+};
 class ChartsView extends Component {
 
     constructor(props){
@@ -75,6 +93,11 @@ class ChartsView extends Component {
             }
         }
         if (values.length > 0){
+            //set x-axis labels
+            for (let i=0;i<values.length;i++){
+                values[i].xtick=formatDateToText(values[i].date,true)
+            }
+
             storeData.values=values;
             storeData.min=min;
             storeData.max=max;
@@ -114,11 +137,13 @@ class ChartsView extends Component {
                     onResize={self.resizeChart}
                     children={(mp) =>
                   <div ref={mp.measureRef} className="chartContainer">
-                    <XYPlot height={self.state.height||DEFAULT_HEIGHT} width={self.state.width||DEFAULT_WIDTH}>
-                        <YAxis hideLine={false} tickValues={[6,7,8,9,10,11,12,13,14]} tickFormat={v => `${v} V`} left={20}/>
-                        <XAxis/>
-                        <LineSeries className="voltageCurve" data={props.values} />
-                    </XYPlot>
+                    <LineChart height={self.state.height||DEFAULT_HEIGHT} width={self.state.width||DEFAULT_WIDTH} data={props.values}>
+                        <YAxis label="V"/>
+                        <XAxis dataKey="xtick"/>
+                        <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
+                        <Tooltip/>
+                        <Line type="monotone" className="voltageCurve" dataKey="voltage" dot={false}/>
+                    </LineChart>
                   </div>
               }/>
 
