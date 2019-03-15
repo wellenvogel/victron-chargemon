@@ -2,4 +2,4 @@
 PORT_OPTION="-p 8081"
 #you can use /dev/ttyXXX or the usb:<id> notation
 DEVICE_OPTION="usb:1-1.5:1.0"
-LOGDIR_OPTION="-l ~/.chargemon"
+LOGDIR_OPTION="-d -l ~/.chargemon"

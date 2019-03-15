@@ -45,7 +45,7 @@ class CmSerial:
       self.device=serial.Serial(port=pnum,baudrate=self.baud)
     except:
       self.logger.error("Unable to open port: %s"%(traceback.format_exc()))
-      self.device=None
+      self.device=None # type: serial.Serial
       self.state=self.State.ERROR
       return
     self.state=self.State.OPEN
@@ -115,7 +115,16 @@ class CmSerial:
       self.condition.release()
       raise Exception("unable to start command - timeout reached")
     self.store=store
-    self.device.write("%d %s\n"%(mySequence,command.encode('ascii', 'ignore')))
+    try:
+      self.device.write("%d %s\n"%(mySequence,command.encode('ascii', 'ignore')))
+    except:
+      self.condition.acquire()
+      if self.runningSequence == mySequence:
+        self.runningSequence=None
+      self.condition.release()
+      if not self.device.isOpen():
+        self.close()
+      raise
     return mySequence
 
   def waitForCommand(self,sequence,timeout=MAX_COMMAND_TIME):
@@ -142,6 +151,7 @@ class CmSerial:
 
   def close(self):
     self.stop=True
+    self.state=self.State.STOPPED
 
   def run(self):
       while not self.stop and self.device is not None:
@@ -149,12 +159,14 @@ class CmSerial:
           line=self.device.readline(1000)
         except:
           self.logger.error("Exception while reading serial %s"%(traceback.format_exc()))
+          self.logger.info("Stopping serial handler and closing %s" % (str(self.port)))
           self.device.close()
           self.state=self.State.ERROR
           return
         if line is not None:
           data=line.decode('ascii','ignore')
           self.parseLine(data)
+      self.logger.info("Stopping serial handler and closing %s"%(str(self.port)))
       self.device.close()
 
 

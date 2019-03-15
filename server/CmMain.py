@@ -129,7 +129,7 @@ class CmMain:
           try:
             sq = self.serial.sendCommand('status', store=self.statusStore)
             self.serial.waitForCommand(sq)
-            self.logger.info("%s: Serial State=%d"%(datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"),self.serial.state))
+            self.logger.info("Serial State=%d"%(self.serial.state))
             for st in CmDefines.STATUS:
               v=self.statusStore.getItem(st)
               self.logger.info("#%s=%s%s"%(st.display,v.getValue() if v is not None else '???',st.unit))
@@ -156,7 +156,7 @@ class CmMain:
                     self.logger.info("#%s=%s%s" % (h.display, item,h.unit))
                 else:
                   self.logger.info( "#%s=%s%s" % (h.display, val,h.unit))
-        time.sleep(5)
+        time.sleep(10)
       time.sleep(5)
 
   def runServer(self,server):

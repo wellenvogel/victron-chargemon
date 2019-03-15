@@ -131,6 +131,7 @@ ospackage {
             include 'chargemon'
         }
     }
+    configurationFile("/etc/sysconfig/chargemon")
 }
 
 
