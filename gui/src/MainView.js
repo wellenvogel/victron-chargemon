@@ -18,6 +18,7 @@ class MainView extends Component {
         this.goBack=this.goBack.bind(this);
         this.onOkClick=this.onOkClick.bind(this);
         this.fetchData=this.fetchData.bind(this);
+        this.onChartClick=this.onChartClick.bind(this);
         this.timer=undefined;
         this.active=false;
     }
@@ -102,6 +103,7 @@ class MainView extends Component {
                 <ToolBar >
                     <span className="toolbar-label">{title}</span>
                     <span className="spacer"/>
+                    <Button className="chartButton" onClick={this.onChartClick}/>
                     <Button className="settingsButton" onClick={this.onOkClick}/>
                 </ToolBar>
                 {info.data?
@@ -126,6 +128,10 @@ class MainView extends Component {
     onOkClick(ev){
         console.log("ok clicked");
         this.props.history.push("/settings");
+    }
+    onChartClick(ev){
+        console.log("charts clicked");
+        this.props.history.push("/charts");
     }
 }
 

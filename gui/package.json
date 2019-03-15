@@ -43,6 +43,8 @@
     "postcss-preset-env": "^6.6.0",
     "prop-types": "^15.7.2",
     "query-string": "^6.3.0",
+    "react-measure": "^2.2.4",
+    "react-vis": "^1.11.6",
     "style-loader": "^0.23.1",
     "webpack": "^4.29.6",
     "webpack-cli": "^3.2.3",

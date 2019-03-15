@@ -149,7 +149,10 @@ button.fab{
 .mainView .toolbar .settingsButton {
  .toolbarButton("icons/settings.svg");
 }
-.settingsView .toolbar .buttonBack{
+.mainView .toolbar .chartButton {
+  .toolbarButton("icons/bar_chart.svg");
+}
+.toolbar .buttonBack{
   .toolbarButton("icons/arrow_back.svg");
 }
 
@@ -233,4 +236,17 @@ button.fab{
   .setButtonFrame{
     .buttonFrame();
   }
+}
+
+.chartsView .commandResult{
+  width:90%;
+  height: 90%;
+}
+.voltageCurve{
+  fill:none;
+  stroke: @voltageColor
+}
+.chartContainer{
+  width: 90%;
+  height: 90%;
 }
