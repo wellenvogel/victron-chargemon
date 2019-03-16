@@ -98,7 +98,7 @@ class ChartsView extends Component {
 
     }
     decodeData(data) {
-        let storeData = data;
+        let storeData = {};
         let values=[];
         let min=999999;
         let max=0;
@@ -136,6 +136,12 @@ class ChartsView extends Component {
             storeData.values=values;
             storeData.min=min;
             storeData.max=max;
+            let sum=findFromDataArray(data,'SU',true);
+            if (sum){
+                storeData.sum=sum;
+                let length=findFromDataArray(data,'TS',true);
+                if (length) storeData.percent=(sum*100)/length;
+            }
         }
         this.setState({data:storeData,running:false,error:undefined});
     }
@@ -204,6 +210,25 @@ class ChartsView extends Component {
 
             )
         };
+        let Summary= function(props){
+            if (! props.sum) return null;
+            return (
+                <div className="summary">
+                    <div className="summaryFrom">
+                        <span class="label">Since</span>
+                        <span class="value">{props.values[0]?formatDateToText(props.values[0].date,true):''}</span>
+                    </div>
+                    <div className="summaryOn">
+                        <span class="label">On</span>
+                        <span class="value">{props.sum+"s"}</span>
+                    </div>
+                    <div className="summaryPercent">
+                        <span class="value">{props.percent?props.percent.toFixed(0):''}</span>
+                        <span class="label">%</span>
+                    </div>
+                </div>
+            );
+        };
         return (
             <div className="view chartsView">
                 <ToolBar >
@@ -217,7 +242,10 @@ class ChartsView extends Component {
                     this.state.error?
                         <Error data={this.state.error}/>:
                         this.state.data.values?
+                            <div className="chartWrapper">
                             <Chart values={this.state.data.values}/>
+                            <Summary {...this.state.data}/>
+                            </div>
                             :null
                 }
             </div>
