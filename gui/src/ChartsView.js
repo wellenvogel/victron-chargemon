@@ -83,7 +83,7 @@ class ChartsView extends Component {
                     if (dataItem.voltage > max) max = dataItem.voltage;
                     if (dataItem.voltage < min)min = dataItem.voltage;
                     dataItem.x=idx;
-                    dataItem.controlState=1;
+                    dataItem.controlState=5.5; //must fit to the domain of the Y axis
                     dataItem.ctrl = itemValues[2];
                     dataItem.charger = itemValues[3];
                     if (dataItem.charger == 'Error') dataItem.ctrl='Fail';
@@ -139,7 +139,7 @@ class ChartsView extends Component {
                     children={(mp) =>
                   <div ref={mp.measureRef} className="chartContainer">
                     <ComposedChart barCategoryGap={-1}  height={self.state.height||DEFAULT_HEIGHT} width={self.state.width||DEFAULT_WIDTH} data={props.values}>
-                        <YAxis label="V"/>
+                        <YAxis label="V" domain={[5,'dataMax + 0.5']}/>
                         <XAxis dataKey="xtick"/>
                         <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
                         <Tooltip/>
