@@ -28,8 +28,8 @@ class VictronReceiver : public Callback{
 
   //a state that fits into 2 bit for the history
   typedef enum{
-    SOther=0,
-    SBulk=1,
+    SError=0,
+    SOther=1,
     SAbsorption=2,
     SFloat=3
   }SimplifiedState;
@@ -69,11 +69,15 @@ class VictronReceiver : public Callback{
     if (state == SOther){
       return "Other";
     }
+    if (state == SError){
+      return "Error";
+    }
     return stateToName(state+2);
   }
 
   static SimplifiedState simplifyState(ChargerState state){
-    if (state > 2 && state <= Float) return state-2;
+    if (state > 3 && state <= Float) return state-2;
+    if (state == Fault) return SError;
     return SOther;
   }
   static boolean isValidValue(unsigned long valueTime,unsigned long currentTime){

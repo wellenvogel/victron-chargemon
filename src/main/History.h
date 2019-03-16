@@ -121,7 +121,7 @@ class History{
     int numEntries=lastWriteTime?(timestamp-lastWriteTime)/timeInterval:1;
     if (numEntries < 1) return; //should not happen...
     int voltage=0;
-    VictronReceiver::SimplifiedState vstate=VictronReceiver::SOther;
+    VictronReceiver::SimplifiedState vstate=VictronReceiver::SError;
     if (victron-> valuesValid()) {
       voltage=victron->getInfo()->voltage;
       vstate=VictronReceiver::simplifyState(victron->getInfo()->state);
