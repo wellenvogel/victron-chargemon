@@ -155,6 +155,9 @@ button.fab{
 .toolbar .buttonBack{
   .toolbarButton("icons/arrow_back.svg");
 }
+.toolbar .buttonRefresh{
+  .toolbarButton("icons/refresh.svg");
+}
 
 .buttonFrame(){
   width: 33%;
@@ -245,7 +248,32 @@ button.fab{
 .voltageCurve path{
   stroke: @voltageColor
 }
+
+.barColor(@color){
+  stroke:@color;
+  fill:@color;
+}
+
 .chartContainer{
   width: 90%;
   height: 90%;
+  .WaitFloat{
+    .barColor(@chartWait);
+  }
+  .OnMinTime{
+    .barColor(@chartOn);
+  }
+  .OnExtended{
+    .barColor(@chartOn);
+  }
+  .TestOn{
+    .barColor(@chartOn);
+  }
+  .Fail{
+    .barColor(@chartError);
+  }
+  .Init{
+    .barColor(@chartNeutral);
+  }
 }
+

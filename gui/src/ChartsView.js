@@ -83,24 +83,10 @@ class ChartsView extends Component {
                     if (dataItem.voltage > max) max = dataItem.voltage;
                     if (dataItem.voltage < min)min = dataItem.voltage;
                     dataItem.x=idx;
-                    dataItem.dummyValue=1;
+                    dataItem.controlState=1;
                     dataItem.ctrl = itemValues[2];
                     dataItem.charger = itemValues[3];
-                    dataItem.ctrlColor='grey';
-                    switch(dataItem.ctrl){
-                        case 'OnMinTime':
-                            dataItem.ctrlColor='green';
-                            break;
-                        case 'OnExtended':
-                            dataItem.ctrlColor='green';
-                            break;
-                        case 'TestOn':
-                            dataItem.ctrlColor='green';
-                            break;
-                        case 'WaitFloat':
-                            dataItem.ctrlColor='yellow';
-                            break;
-                    }
+                    if (dataItem.charger == 'Error') dataItem.ctrl='Fail';
                     dataItem.onTime = parseInt(itemValues[4]);
                     values.push(dataItem);
                     idx++;
@@ -130,7 +116,7 @@ class ChartsView extends Component {
     }
 
     render() {
-        let title="History";
+        let title="Chart";
         let self=this;
         let Error=function(props){
             return (
@@ -152,16 +138,16 @@ class ChartsView extends Component {
                     onResize={self.resizeChart}
                     children={(mp) =>
                   <div ref={mp.measureRef} className="chartContainer">
-                    <ComposedChart barCategoryGap={-3}  height={self.state.height||DEFAULT_HEIGHT} width={self.state.width||DEFAULT_WIDTH} data={props.values}>
+                    <ComposedChart barCategoryGap={-1}  height={self.state.height||DEFAULT_HEIGHT} width={self.state.width||DEFAULT_WIDTH} data={props.values}>
                         <YAxis label="V"/>
                         <XAxis dataKey="xtick"/>
                         <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
                         <Tooltip/>
                         <Line type="monotone" className="voltageCurve" dataKey="voltage" dot={false}/>
-                        <Bar dataKey='dummyValue' >
+                        <Bar dataKey='controlState' >
                         {
                             props.values.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={props.values[index].ctrlColor}/>
+                                <Cell key={`cell-${index}`} className={props.values[index].ctrl}/>
                                 ))
                         }
                         </Bar>
@@ -174,9 +160,10 @@ class ChartsView extends Component {
         return (
             <div className="view chartsView">
                 <ToolBar >
-                    <Button className="buttonBack" onClick={this.goBack}/>
+                    <Button className="buttonBack" onClick={this.goBack} neutral={false}/>
                     <span className="toolbar-label">{title}</span>
                     <span className="spacer"/>
+                    <Button className="buttonRefresh" onClick={this.fetchData} neutral={false}/>
                 </ToolBar>
                 {this.state.running ?
                     <Running/>:
