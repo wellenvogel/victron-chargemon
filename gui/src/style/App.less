@@ -275,5 +275,15 @@ button.fab{
   .Init{
     .barColor(@chartNeutral);
   }
+  .keepOnVoltage line{
+    stroke: @chartOnVoltage;
+  }
+  .offVoltage line{
+    stroke: @chartOffVoltage;
+  }
+  //just do not display the bar chart info
+  .recharts-tooltip-item:first-child {
+    display: none !important;
+  }
 }
 

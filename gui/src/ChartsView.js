@@ -1,10 +1,12 @@
 import React, { Component } from 'react';
 import ToolBar from './components/ToolBar';
 import Button from 'react-toolbox/lib/button';
-import { ComposedChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Bar, Cell } from 'recharts';
+import { ComposedChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Bar, Cell, ReferenceLine } from 'recharts';
 import Measure from 'react-measure';
 
-const BASEURL='/control/command?cmd=history';
+const BASEURL='/control/command?cmd=';
+const HISTORYURL=BASEURL+'history';
+const SETTINGSURL=BASEURL+'set';
 
 const DEFAULT_WIDTH=300;
 const DEFAULT_HEIGHT=300;
@@ -27,6 +29,15 @@ const formatDateToText=function(date,withDay){
     let dv=formatDate(date,withDay);
     return dv.day+" "+dv.time;
 };
+
+const findFromDataArray=function(data,name,returnValue){
+  for (let i in data){
+      if (data[i].definition && data[i].definition.name == name){
+          if (returnValue) return data[i].value;
+          return data[i];
+      }
+  }
+};
 class ChartsView extends Component {
 
     constructor(props){
@@ -37,16 +48,39 @@ class ChartsView extends Component {
         this.setError=this.setError.bind(this);
         this.decodeData=this.decodeData.bind(this);
         this.resizeChart=this.resizeChart.bind(this);
+        this.fetchSettings=this.fetchSettings.bind(this);
 
     }
     setError(err){
         this.setState({error:err,data:undefined,running:false});
     }
-    fetchData(){
+    fetchSettings(){
         let self=this;
         this.setState({running:true});
 
-        fetch(BASEURL,{
+        fetch(SETTINGSURL,{
+            credentials: 'same-origin'
+        }).then(function(response){
+            if (! response.ok){
+                return null;
+            }
+            return response.json()
+        }).then(function(jsonData){
+            if (jsonData.status !== 'OK'){
+                return;
+            }
+            let keepOnVoltage=findFromDataArray(jsonData.data,'KeepOnVoltage',true);
+            let offVoltage=findFromDataArray(jsonData.data,'OffVoltage',true);
+            self.setState({keepOnVoltage:keepOnVoltage,offVoltage:offVoltage})
+        })
+
+    }
+    fetchData(){
+        this.fetchSettings();
+        let self=this;
+        this.setState({running:true});
+
+        fetch(HISTORYURL,{
             credentials: 'same-origin'
         }).then(function(response){
             if (! response.ok){
@@ -143,6 +177,19 @@ class ChartsView extends Component {
                         <XAxis dataKey="xtick"/>
                         <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
                         <Tooltip/>
+                        {self.state.keepOnVoltage?
+                            <ReferenceLine y={self.state.keepOnVoltage}
+                                className="keepOnVoltage"
+                                label={{value:"Keep: "+self.state.keepOnVoltage+" V",position:'top'}}
+                                strokeDasharray="3 3"
+                                />:null
+                        }
+                        {self.state.offVoltage?
+                            <ReferenceLine y={self.state.offVoltage}
+                                className="offVoltage"
+                                label={{value:"Off: "+self.state.offVoltage+" V",position:'bottom'}}
+                                />:null
+                        }
                         <Line type="monotone" className="voltageCurve" dataKey="voltage" dot={false}/>
                         <Bar dataKey='controlState' >
                         {
