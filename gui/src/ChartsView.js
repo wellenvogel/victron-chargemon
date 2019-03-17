@@ -116,7 +116,7 @@ class ChartsView extends Component {
                     dataItem.voltage = parseFloat(itemValues[1]) / 1000;
                     if (dataItem.voltage > max) max = dataItem.voltage;
                     if (dataItem.voltage < min)min = dataItem.voltage;
-                    dataItem.x=idx;
+                    dataItem.index=idx;
                     dataItem.controlState=5.5; //must fit to the domain of the Y axis
                     dataItem.ctrl = itemValues[2];
                     dataItem.charger = itemValues[3];
@@ -165,24 +165,38 @@ class ChartsView extends Component {
                 </div>
             )
         };
-        let Running=function(props){
+        const Running=function(props){
           return(
               <div className="runningIndicator">
                   Loading...</div>
           );
         };
+        const CustomTooltip = ({ active, payload, label }) => {
+            if (active) {
+                let data=payload[0].payload;
+                return (
+                    <div className="custom-tooltip">
+                        <p className="label">{label}</p>
+                        <p className="value">{`Voltage: ${data.voltage} V`}</p>
+                        <p className="value">{`State: ${data.ctrl}`}</p>
+                        <p className="value">{`Charger: ${data.charger}`}</p>
+                    </div>
+                );
+            }
+            return null;
+        };
 
-        let Chart = function (props) {
+        const Chart = function (props) {
             return (
                 <Measure
                     onResize={self.resizeChart}
                     children={(mp) =>
                   <div ref={mp.measureRef} className="chartContainer">
                     <ComposedChart barCategoryGap={-1}  height={self.state.height||DEFAULT_HEIGHT} width={self.state.width||DEFAULT_WIDTH} data={props.values}>
-                        <YAxis label="V" domain={[5,'dataMax + 0.5']}/>
+                        <YAxis label="V" domain={[5,15]}/>
                         <XAxis dataKey="xtick"/>
                         <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
-                        <Tooltip/>
+                        <Tooltip content={<CustomTooltip/>}/>
                         {self.state.keepOnVoltage?
                             <ReferenceLine y={self.state.keepOnVoltage}
                                 className="keepOnVoltage"
@@ -215,16 +229,16 @@ class ChartsView extends Component {
             return (
                 <div className="summary">
                     <div className="summaryFrom">
-                        <span class="label">Since</span>
-                        <span class="value">{props.values[0]?formatDateToText(props.values[0].date,true):''}</span>
+                        <span className="label">Since</span>
+                        <span className="value">{props.values[0]?formatDateToText(props.values[0].date,true):''}</span>
                     </div>
                     <div className="summaryOn">
-                        <span class="label">On</span>
-                        <span class="value">{props.sum+"s"}</span>
+                        <span className="label">On</span>
+                        <span className="value">{props.sum+"s"}</span>
                     </div>
                     <div className="summaryPercent">
-                        <span class="value">{props.percent?props.percent.toFixed(0):''}</span>
-                        <span class="label">%</span>
+                        <span className="value">{props.percent?props.percent.toFixed(0):''}</span>
+                        <span className="label">%</span>
                     </div>
                 </div>
             );
