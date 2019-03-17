@@ -5,6 +5,7 @@ import Value from './components/Value.jsx';
 import Constants from './components/Constants.js';
 import Store from './components/Store.js';
 import ItemUpdater from './components/ItemUpdater.jsx';
+import Helper from './components/Helper.js';
 
 
 const url="/control/command?cmd=state";

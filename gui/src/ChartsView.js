@@ -3,6 +3,7 @@ import ToolBar from './components/ToolBar';
 import Button from 'react-toolbox/lib/button';
 import { ComposedChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Bar, Cell, ReferenceLine } from 'recharts';
 import Measure from 'react-measure';
+import Helper from './components/Helper.js';
 
 const BASEURL='/control/command?cmd=';
 const HISTORYURL=BASEURL+'history';
@@ -11,33 +12,11 @@ const SETTINGSURL=BASEURL+'set';
 const DEFAULT_WIDTH=300;
 const DEFAULT_HEIGHT=300;
 
-const formatNumber=function(num,digits){
-    let rt=num.toFixed(0);
-    while(rt.length < digits){
-        rt="0"+rt;
-    }
-    return rt;
-};
-const formatDate=function(date,withDay){
-    let rt={time:formatNumber(date.getHours(),2)+":"+formatNumber(date.getMinutes(),2)};
-    if (withDay){
-        rt.day=formatNumber(date.getMonth()+1,2)+"/"+formatNumber(date.getDate(),2);
-    }
-    return rt;
-};
-const formatDateToText=function(date,withDay){
-    let dv=formatDate(date,withDay);
-    return dv.day+" "+dv.time;
-};
 
-const findFromDataArray=function(data,name,returnValue){
-  for (let i in data){
-      if (data[i].definition && data[i].definition.name == name){
-          if (returnValue) return data[i].value;
-          return data[i];
-      }
-  }
-};
+
+const formatDateToText=Helper.formatDateToText;
+const findFromDataArray=Helper.findFromDataArray;
+
 class ChartsView extends Component {
 
     constructor(props){
@@ -234,10 +213,10 @@ class ChartsView extends Component {
                     </div>
                     <div className="summaryOn">
                         <span className="label">On</span>
-                        <span className="value">{props.sum+"s"}</span>
+                        <span className="value">{Helper.secondsToTime(props.sum)}</span>
                     </div>
                     <div className="summaryPercent">
-                        <span className="value">{props.percent?props.percent.toFixed(0):''}</span>
+                        <span className="value">{props.percent?props.percent.toFixed(0):'0'}</span>
                         <span className="label">%</span>
                     </div>
                 </div>
