@@ -45,10 +45,12 @@ class SettingsView extends Component {
         this.onKeyPress=this.onKeyPress.bind(this);
         this.startFreeCommand=this.startFreeCommand.bind(this);
         this.changeSetCommand=this.changeSetCommand.bind(this);
+
     }
     setError(err){
         this.setState({error:err,data:undefined,running:false});
     }
+
     runCommand(cmd){
         let self=this;
         let url=buildUrl(cmd);
@@ -71,7 +73,6 @@ class SettingsView extends Component {
             }
             self.setState({error:undefined,data:jsonData.data,running:false});
         })
-
     }
     startFreeCommand(){
         this.startCommand();

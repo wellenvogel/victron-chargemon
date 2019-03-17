@@ -15,6 +15,7 @@ class ManagedDropdown extends Component{
         if (this.props.onChange){
             this.props.onChange(value);
         }
+        return false;
     }
     render(){
         return(

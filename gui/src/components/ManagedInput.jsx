@@ -1,7 +1,6 @@
 import React,{Component} from 'react';
 import assign from 'object-assign';
 import PropTypes from 'prop-types';
-import Input from 'react-toolbox/lib/input';
 
 
 class ManagedInput extends Component{
@@ -11,20 +10,26 @@ class ManagedInput extends Component{
         this.inputChanged=this.inputChanged.bind(this);
         this.onKeyPress=this.onKeyPress.bind(this);
     }
-    inputChanged(value){
-        this.setState({value:value});
+    inputChanged(ev){
+        this.setState({value:ev.target.value});
         if (this.props.onChange){
-            this.props.onChange(value);
+            this.props.onChange(ev.target.value);
         }
     }
+
     onKeyPress(key){
         if (this.props.onKeyPress){
             this.props.onKeyPress(key);
         }
     }
+    componentWillReceiveProps(nextProps){
+        if (nextProps.value != this.props.value){
+            this.setState({value:nextProps.value});
+        }
+    }
     render(){
         return(
-        <Input
+        <input
             className={"managedInput "+(this.props.className?this.props.className:"")}
             label={this.props.label?this.props.label:null}
             value={this.state.value}
@@ -33,7 +38,7 @@ class ManagedInput extends Component{
             onKeyPress={this.onKeyPress}
             theme={this.props.theme?this.props.theme:undefined}
             >
-        </Input>
+        </input>
         )
     }
 }
