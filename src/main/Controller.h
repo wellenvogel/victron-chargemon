@@ -231,10 +231,6 @@ class Controller{
         return;
       case OnMinTime:
         if (checkStateTime()){
-          changeState(Init,"MaxTime");
-          return;
-        }
-        if (checkStateTime()){
           changeState(OnExtended,"MinTime");
           return;
         }
