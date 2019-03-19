@@ -111,7 +111,7 @@ class CmMain:
     serverThread.setDaemon(True)
     serverThread.setName("HTTPServer")
     serverThread.start()
-    lastHistory=time.time()
+    lastHistory=0
     count=-1
     while True:
       self.serial = None
