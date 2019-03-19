@@ -2,6 +2,7 @@
 import datetime
 import sys
 
+from CHistory import CHistory
 from CmSerial import *
 hasUsb=False
 try:
@@ -20,7 +21,7 @@ import getopt
 class CmMain:
   def __init__(self,argv):
     try:
-      opts,args=getopt.getopt(argv[1:],'p:b:dl:g:')
+      opts,args=getopt.getopt(argv[1:],'p:b:dl:g:h:')
     except getopt.GetoptError as err:
       print str(err)
       self.usage()
@@ -30,6 +31,7 @@ class CmMain:
     logdir="."
     guibase="gui"
     self.query=0
+    self.historyInterval=0
     for o, a in opts:
       if o == '-p':
         port=int(a)
@@ -42,12 +44,15 @@ class CmMain:
         if not os.path.exists(logdir):
           print "trying to create logdir %s"%(logdir)
           os.makedirs(logdir)
+      if o == '-h':
+        self.historyInterval=int(a)
       if o == '-g':
         guibase=os.path.expanduser(a)
         if not os.path.isabs(guibase):
           guibase=os.path.join(os.path.dirname(__file__),guibase)
         if not os.path.exists(guibase):
           raise Exception("gui base %s not found"%guibase)
+
     self.guibase=guibase
     self.webPort=port
     self.serialPort=args[0]
@@ -62,11 +67,14 @@ class CmMain:
     self.logger.addHandler(handler)
     self.logger.info("####cmserver started, port=%s,baud=%d####",self.serialPort,baud)
     self.logger.info("basedir=%s",self.guibase)
+    if self.historyInterval > 0:
+      self.localHistory=CHistory(logdir,self.historyInterval,map(lambda v: v.name, CmDefines.STATUS))
   def usage(self):
-    print "usage: XXX [-p port] [-b baud] [-d] [-l logdir] [-g basedir] serialDevice"
+    print "usage: XXX [-p port] [-b baud] [-d] [-l logdir] [-g basedir] [-h historyInterval] serialDevice"
     print "           -p - port for webserver"
     print "           -b baudrate, default 19200"
     print "           -d do queries to log"
+    print "           -h history in seconds"
     print "           -l basedir for logging, e.g. ~/.chargemon"
     print "           -g guibase the basedir for the static files to be served"
     print "           serialDevice either path or usb:<usbid>"
@@ -97,12 +105,13 @@ class CmMain:
       return None
     return port
   def run(self):
-    controller=CmController(None)
+    controller=CmController(None,self.localHistory)
     server=HTTPServer(HTTPHandler,self.webPort,controller,self.guibase)
     serverThread=threading.Thread(target=self.runServer,args=[server])
     serverThread.setDaemon(True)
     serverThread.setName("HTTPServer")
     serverThread.start()
+    lastHistory=time.time()
     count=-1
     while True:
       self.serial = None
@@ -124,18 +133,23 @@ class CmMain:
       count=0
       while self.serial.isOpen():
         count += 1
-        if self.query != 0:
+        shouldWriteHistory=self.localHistory is not None and (time.time() >= (lastHistory+self.historyInterval))
+        if (self.query != 0) or shouldWriteHistory:
           self.statusStore.reset()
           try:
+            lastHistory = time.time()
             sq = self.serial.sendCommand('status', store=self.statusStore)
             self.serial.waitForCommand(sq)
             self.logger.info("Serial State=%d"%(self.serial.state))
             for st in CmDefines.STATUS:
               v=self.statusStore.getItem(st)
               self.logger.info("#%s=%s%s"%(st.display,v.getValue() if v is not None else '???',st.unit))
+            if shouldWriteHistory:
+              self.localHistory.writeValuesFromState(self.statusStore)
           except:
             self.logger.error("error in status query %s"%(traceback.format_exc()))
             self.serial.close()
+            lastHistory = time.time()
             continue
           if (count % 20) == 0 and self.serial.isOpen():
             try:

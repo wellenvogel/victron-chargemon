@@ -51,6 +51,15 @@ class CmStore:
     if self.__stillValid(v):
       return v
     return None
+  def getValueByName(self,name):
+    if name is None:
+      return None
+    if self.isRaw:
+      raise Exception("invalid usage, raw store")
+    v = self.store.get(name)
+    if self.__stillValid(v):
+      return v.getValue()
+    return None
   def getAll(self):
     if self.isRaw:
       return self.store

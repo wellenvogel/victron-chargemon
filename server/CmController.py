@@ -1,6 +1,7 @@
 class CmController:
-  def __init__(self,serial):
+  def __init__(self,serial,history=None):
     self.serial=serial
+    self.history=history
 
   def setSerial(self,serial):
     self.serial=serial
@@ -18,6 +19,17 @@ class CmController:
       raise Exception("missing parameter %s"%name)
     return rt
   def handleRequest(self,path,param):
+    if path=="history":
+      day=self.getHttpRequestParam(param,'day')
+      if day is not None:
+        day=int(day)
+      else:
+        day=0
+      if self.history is None:
+        rt={'status':'ERROR','info':'no history configured'}
+        return rt
+      rt=self.history.readHistoryForDay(day)
+      return rt
     if self.serial is None:
       return {
         'status':'ERROR',
