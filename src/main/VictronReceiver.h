@@ -37,13 +37,13 @@ class VictronReceiver : public Callback{
     unsigned long lastState=0;
     ChargerState state=Off;
     unsigned long lastVoltage=0;
-    int voltage=0;
+    long voltage=0;
     unsigned long lastPvoltage=0;
-    int pVoltage=0;
+    long pVoltage=0;
     unsigned long lastPpower=0;
-    int pPower=0;
+    long pPower=0;
     unsigned long lastBcurrent=0;
-    int bCurrent=0;
+    long bCurrent=0;
   }VictronInfo;
   private:
   Receiver *receiver;
@@ -108,7 +108,7 @@ class VictronReceiver : public Callback{
     if (! label || ! value) return;
     if (strcmp("V",label) == 0){
       //battery voltage
-      float nv=atoi(value);
+      long nv=atol(value);
       if (nv < 0 || nv > 100000) return;
       info.lastVoltage=current;
       info.voltage=nv;
@@ -119,7 +119,7 @@ class VictronReceiver : public Callback{
     }
     if (strcmp("PPV",label) == 0){
       //panel power
-      float nv=atoi(value);
+      long nv=atol(value);
       if (nv < 0 || nv > 1000) return;
       info.lastPpower=current;
       info.pPower=nv;
@@ -130,8 +130,8 @@ class VictronReceiver : public Callback{
     }
     if (strcmp("VPV",label) == 0){
       //panel voltage
-      float nv=atoi(value);
-      if (nv < 0 || nv > 100000) return;
+      long nv=atol(value);
+      if (nv < 0 || nv > 150000) return;
       info.lastPvoltage=current;
       info.pVoltage=nv;
       if (debug){
@@ -141,8 +141,8 @@ class VictronReceiver : public Callback{
     }
     if (strcmp("I",label) == 0){
       //Battery current
-      float nv=atoi(value);
-      if (nv < 0 || nv > 100000) return;
+      long nv=atol(value);
+      if (nv < -100000 || nv > 100000) return;
       info.lastBcurrent=current;
       info.bCurrent=nv;
       if (debug){
