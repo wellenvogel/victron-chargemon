@@ -16,7 +16,7 @@ class AlternateReceiver: public Receiver{
     instance->receive(c);
   }
   public:
-  AlternateReceiver(Callback *cb,byte rx,byte tx):Receiver(cb,SERIAL_MAXSIZE,3){
+  AlternateReceiver(Callback *cb,byte rx,byte tx):Receiver(cb,SERIAL_MAXSIZE,6){
     serial=new NeoSWSerial(rx,tx);
     instance=this; //should set instance to NULL on destroy...
     serial->attachInterrupt(isr);
