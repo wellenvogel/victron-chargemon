@@ -259,8 +259,9 @@ button.fab{
 }
 
 .chartContainer{
-  width: 90%;
-  height: 90%;
+  flex:1;
+  display: flex;
+  flex-direction: column;
   .WaitFloat{
     .barColor(@chartWait);
   }
@@ -292,6 +293,8 @@ button.fab{
 }
 .chartWrapper{
   flex:1;
+  display: flex;
+  flex-direction: column;
   .summary {
     width: 15em;
     margin: auto;
@@ -305,6 +308,23 @@ button.fab{
 
     .label{
       margin-right: 0.3em;
+    }
+    .secondValue{
+      margin-left: 0.3em;
+    }
+  }
+
+  .displayInterval {
+    height: 2em;
+    padding: 0.5em;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+  }
+  .displayIntervalInner{
+    display: flex;
+    label{
+      margin-right:0.3em;
     }
   }
 
