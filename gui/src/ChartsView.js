@@ -53,7 +53,8 @@ class ChartsView extends Component {
             }
             let keepOnVoltage=findFromDataArray(jsonData.data,'KeepOnVoltage',true);
             let offVoltage=findFromDataArray(jsonData.data,'OffVoltage',true);
-            self.setState({keepOnVoltage:keepOnVoltage,offVoltage:offVoltage})
+            //settings are in mV, so we have to change this...
+            self.setState({keepOnVoltage:keepOnVoltage/1000,offVoltage:offVoltage/1000})
         })
 
     }
