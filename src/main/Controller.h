@@ -206,12 +206,12 @@ class Controller{
       return;
     }
     VictronReceiver::VictronInfo *info=receiver->getInfo();
-    int offVoltage=Settings::getCurrentValue(settingsOffVoltage);
+    long offVoltage=Settings::getCurrentValue(settingsOffVoltage);
     if (offVoltage && info->voltage < offVoltage){
       changeState(Init,"OffVoltage");
       return;
     }
-    int iv;
+    long iv;
     switch(state){
       case TryOn:
         changeState(OnMinTime);
