@@ -152,6 +152,10 @@ class CmSerial:
   def close(self):
     self.stop=True
     self.state=self.State.STOPPED
+    try:
+      self.device.close()
+    except:
+      pass
 
   def run(self):
       while not self.stop and self.device is not None:
