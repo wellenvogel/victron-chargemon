@@ -67,7 +67,7 @@ def runSim(fname,speedUp,parameters):
       xline=re.sub("#.*","",line.rstrip())
       if re.match("^ *$",xline):
         continue
-      fields=xline.split(";",3)
+      fields=xline.split(";")
       if len(fields) < 2:
         print "##invalid line %s, ignoring"%(line,)
         continue
