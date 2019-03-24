@@ -4,7 +4,9 @@ import os
 
 import Constants
 
+
 class ValueHolder:
+
   def __init__(self,valueHash):
     self.values=valueHash
   def getValueByName(self,name):
@@ -12,6 +14,7 @@ class ValueHolder:
 
 class CHistory:
   DATEHEADER='date'
+  MAXDAYS=50
   def __init__(self,basedir,interval,headline):
     self.basedir=basedir
     self.interval=interval
@@ -78,12 +81,12 @@ class CHistory:
     :return:
     """
     old=self.readHistoryToHash(newName)
-    if old['state'] != 'OK':
+    if old['status'] != 'OK':
       os.unlink(newName)
       self.currentFile = open(newName, 'w')
       self.__writeHeadline()
     else:
-      if self.headline != old['names']:
+      if self.headline != old['data']['names']:
         self.logger.info("migrating history file %s", newName)
         self.currentFile = open(newName, 'w')
         self.__writeHeadline()
@@ -97,7 +100,7 @@ class CHistory:
     fileName = self.getFileForDay(dayOffset)
     return self.readHistoryToHash(fileName)
   def readHistoryToHash(self,fileName):
-    rt={'state':'ERROR'}
+    rt={'status':'ERROR'}
     if not os.path.exists(fileName):
       rt['info']="file %s not found"%fileName
       return rt
@@ -106,15 +109,23 @@ class CHistory:
       if not line:
         rt['info']="no header in file %s"%fileName
         return rt
-      header=line.split(",")
-      rt = {'state':'OK','names': header, 'values': []}
+      header=line.rstrip().split(",")
+      rt = {'status':'OK','data':{'names': header, 'values': []}}
       line=f.readline()
       while line:
-        data=line.split(',')
+        data=line.rstrip().split(',')
         out={}
         for i in range(0,len(header)):
           if i < len(data):
             out[header[i]]=data[i]
-        rt['values'].append(out)
+        rt['data']['values'].append(out)
         line=f.readline()
     return rt
+
+  def getHistoryDays(self):
+    rt=[]
+    for i in range(-self.MAXDAYS,1):
+      if os.path.exists(self.getFileForDay(i)):
+        rt.append(i)
+    return rt
+

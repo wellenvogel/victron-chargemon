@@ -30,6 +30,12 @@ class CmController:
         return rt
       rt=self.history.readHistoryForDay(day)
       return rt
+    if path=="days":
+      if self.history is None:
+        rt={'status':'ERROR','info':'no history configured'}
+        return rt
+      rt={'status':'OK','data':self.history.getHistoryDays()}
+      return rt
     if self.serial is None:
       return {
         'status':'ERROR',
