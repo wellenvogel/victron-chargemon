@@ -6,9 +6,9 @@ import { ComposedChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Bar, Cell, R
 import Measure from 'react-measure';
 import Helper from './components/Helper.js';
 
-const BASEURL='/control/command?cmd=';
+const BASEURL='/control/';
 const HISTORYURL=BASEURL+'history';
-const SETTINGSURL=BASEURL+'set';
+const SETTINGSURL=BASEURL+'command?cmd=set';
 
 const DEFAULT_WIDTH=300;
 const DEFAULT_HEIGHT=300;
@@ -19,7 +19,7 @@ const DISPLAY_12H=12*3600;
 const formatDateToText=Helper.formatDateToText;
 const findFromDataArray=Helper.findFromDataArray;
 
-class ChartsView extends Component {
+class ChartsViewServer extends Component {
 
     constructor(props){
         super(props);
@@ -75,39 +75,28 @@ class ChartsView extends Component {
                 self.setError(jsonData.info||'unknown error');
                 return;
             }
-            self.decodeData(jsonData.data);
+            self.decodeData(jsonData.data.values);
         })
 
     }
     decodeData(data) {
         let storeData = {};
         let values=[];
-        let min=999999;
-        let max=0;
-        let start=new Date();
-        for (let i in data){
-            let item=data[i];
-            if (item.definition.name == 'TE'){
-                let idx=0;
-                for (let pidx=item.value.length-1;pidx >=0;pidx--){
-                    let itemValues = item.value[pidx].split(',');
-                    if (itemValues.length != 5) return;
-                    let dataItem = {};
-                    dataItem.date = new Date(start.getTime() - parseInt(itemValues[0]) * 1000);
-                    dataItem.seconds=parseInt(itemValues[0]);
-                    dataItem.voltage = parseFloat(itemValues[1]) / 1000;
-                    if (dataItem.voltage > max) max = dataItem.voltage;
-                    if (dataItem.voltage < min)min = dataItem.voltage;
-                    dataItem.index=idx;
-                    dataItem.controlState=5.5; //must fit to the domain of the Y axis
-                    dataItem.ctrl = itemValues[2];
-                    dataItem.charger = itemValues[3];
-                    if (dataItem.charger == 'Error') dataItem.ctrl='Fail';
-                    dataItem.onTime = parseInt(itemValues[4]);
-                    values.push(dataItem);
-                    idx++;
-                };
+        for (let i in data) {
+            let item = data[i];
+            let dataItem = {};
+            for (let k in item){
+                if (k == 'date'){
+                    dataItem[k]=new Date(item[k]);
+                }
+                else {
+                    dataItem[k] = (item[k] == '##') ? 0 : item[k];
+                }
             }
+            dataItem.controlState = 5.5; //must fit to the domain of the Y axis
+            dataItem.ctrl = item['CState'];
+            if (dataItem.Connection == 'FAIL') dataItem.ctrl = 'Fail';
+            values.push(dataItem);
         }
         let runtime=0;
         if (values.length > 0){
@@ -117,17 +106,9 @@ class ChartsView extends Component {
             }
 
             storeData.values=values;
-            storeData.min=min;
-            storeData.max=max;
-            let sum=findFromDataArray(data,'SU',true);
-            if (sum){
-                storeData.sum=sum;
-                let length=findFromDataArray(data,'TS',true);
-                if (length) storeData.percent=(sum*100)/length;
-            }
-            runtime=start.getTime()/1000-values[0].date.getTime()/1000;
         }
         this.setState({data:storeData,running:false,error:undefined,runtime:runtime});
+
     }
     componentDidMount(){
         this.fetchData();
@@ -143,7 +124,7 @@ class ChartsView extends Component {
     }
 
     render() {
-        let title="Chart";
+        let title="Server";
         let self=this;
         let Error=function(props){
             return (
@@ -164,9 +145,9 @@ class ChartsView extends Component {
                 return (
                     <div className="custom-tooltip">
                         <p className="label">{label}</p>
-                        <p className="value">{`Voltage: ${data.voltage} V`}</p>
+                        <p className="value">{`Voltage: ${data.V} V`}</p>
                         <p className="value">{`State: ${data.ctrl}`}</p>
-                        <p className="value">{`Charger: ${data.charger}`}</p>
+                        <p className="value">{`Charger: ${data.CS}`}</p>
                     </div>
                 );
             }
@@ -195,7 +176,7 @@ class ChartsView extends Component {
                     children={(mp) =>
                   <div ref={mp.measureRef} className="chartContainer">
                     <ComposedChart barCategoryGap={-1}  height={self.state.height||DEFAULT_HEIGHT} width={self.state.width||DEFAULT_WIDTH} data={props.values}>
-                        <YAxis label="V" domain={[5,15]}/>
+                        <YAxis label="V" domain={[5,15]} allowDataOverflow={true}/>
                         <XAxis dataKey="xtick"/>
                         <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
                         <Tooltip content={<CustomTooltip/>}/>
@@ -212,7 +193,7 @@ class ChartsView extends Component {
                                 label={{value:"Off: "+self.state.offVoltage+" V",position:'bottom'}}
                                 />:null
                         }
-                        <Line type="monotone" className="voltageCurve" dataKey="voltage" dot={false}/>
+                        <Line type="monotone" className="voltageCurve" dataKey="V" dot={false}/>
                         <Bar dataKey='controlState' >
                         {
                             props.values.map((entry, index) => (
@@ -293,4 +274,4 @@ class ChartsView extends Component {
 }
 
 
-export default ChartsView;
+export default ChartsViewServer;

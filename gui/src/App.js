@@ -6,7 +6,8 @@ import {
 
 import MainView from './MainView';
 import SettingsView from './SettingsView';
-import ChartsView from './ChartsView'
+import ChartsView from './ChartsView';
+import ChartsViewServer from './ChartsViewServer'
 class App extends Component {
   render() {
     return (
@@ -16,6 +17,7 @@ class App extends Component {
                 <Route path="/main" component={MainView}/>
                 <Route path="/settings/" component={SettingsView}/>
                 <Route path="/charts/" component={ChartsView}/>
+                <Route path="/servercharts/" component={ChartsViewServer}/>
             </div>
         </Router>
     );
