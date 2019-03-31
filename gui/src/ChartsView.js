@@ -31,6 +31,7 @@ class ChartsView extends Component {
         this.resizeChart=this.resizeChart.bind(this);
         this.fetchSettings=this.fetchSettings.bind(this);
         this.handleDisplayInterval=this.handleDisplayInterval.bind(this);
+        this.resizeTimer=0;
 
     }
     setError(err){
@@ -134,9 +135,14 @@ class ChartsView extends Component {
     }
 
     resizeChart(rect){
-        if (this.state.width != rect.entry.width || this.state.height != rect.entry.height){
-            this.setState({ width:rect.entry.width,height:rect.entry.height });
-        }
+        console.log("resize trigger");
+        window.clearTimeout(this.resizeTimer);
+        this.resizeTimer=window.setTimeout(()=> {
+            console.log("resize execute");
+            if (this.state.width != rect.entry.width || this.state.height != rect.entry.height) {
+                this.setState({width: rect.entry.width, height: rect.entry.height});
+            }
+        },200);
     }
     handleDisplayInterval(nval){
         this.setState({displayInterval:nval})

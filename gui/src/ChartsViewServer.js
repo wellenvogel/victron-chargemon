@@ -46,6 +46,7 @@ class ChartsViewServer extends Component {
         this.fetchSettings=this.fetchSettings.bind(this);
         this.handleDisplayInterval=this.handleDisplayInterval.bind(this);
         this.changeDay=this.changeDay.bind(this);
+        this.resizeTimer=0;
 
     }
     setError(err){
@@ -150,9 +151,14 @@ class ChartsViewServer extends Component {
     }
 
     resizeChart(rect){
-        if (this.state.width != rect.entry.width || this.state.height != rect.entry.height){
-            this.setState({ width:rect.entry.width,height:rect.entry.height });
-        }
+        console.log("resize trigger");
+        window.clearTimeout(this.resizeTimer);
+        this.resizeTimer=window.setTimeout(()=> {
+            console.log("resize execute");
+            if (this.state.width != rect.entry.width || this.state.height != rect.entry.height) {
+                this.setState({width: rect.entry.width, height: rect.entry.height});
+            }
+        },200);
     }
     handleDisplayInterval(nval){
         this.setState({displayInterval:nval})
@@ -228,7 +234,7 @@ class ChartsViewServer extends Component {
         const Chart = function (props) {
             return (
                 <Measure
-                    onResize={self.resizeChart}
+                    onResize={props.resizeChart}
                     children={(mp) =>
                   <div ref={mp.measureRef} className="chartContainer">
                     <ComposedChart barCategoryGap={-1}  height={self.state.height||DEFAULT_HEIGHT} width={self.state.width||DEFAULT_WIDTH} data={props.values}>
@@ -327,7 +333,7 @@ class ChartsViewServer extends Component {
                                 onPreviousDay={()=> self.changeDay(-1)}
                                 onNextDay={()=>self.changeDay(1)}
                                 />
-                            <Chart values={filteredValues}/>
+                            <Chart values={filteredValues} resizeChart={this.resizeChart}/>
                             <Summary {...this.state.data} runtime={this.state.runtime}/>
                             </div>
                             :null
