@@ -2,9 +2,10 @@ import React, { Component } from 'react';
 import ToolBar from './components/ToolBar';
 import Button from 'react-toolbox/lib/button';
 import { RadioGroup, RadioButton } from 'react-toolbox/lib/radio';
-import { ComposedChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Bar, Cell, ReferenceLine } from 'recharts';
+import { Area, ComposedChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Bar, Cell, ReferenceLine } from 'recharts';
 import Measure from 'react-measure';
 import Helper from './components/Helper.js';
+import assign from 'object-assign';
 
 const BASEURL='/control/command?cmd=';
 const HISTORYURL=BASEURL+'history';
@@ -105,6 +106,7 @@ class ChartsView extends Component {
                     dataItem.charger = itemValues[3];
                     if (dataItem.charger == 'Error') dataItem.ctrl='Fail';
                     dataItem.onTime = parseInt(itemValues[4]);
+                    dataItem=assign(dataItem,Helper.stateToValues(dataItem.ctrl));
                     values.push(dataItem);
                     idx++;
                 };
@@ -202,6 +204,7 @@ class ChartsView extends Component {
                   <div ref={mp.measureRef} className="chartContainer">
                     <ComposedChart barCategoryGap={-1}  height={self.state.height||DEFAULT_HEIGHT} width={self.state.width||DEFAULT_WIDTH} data={props.values}>
                         <YAxis label="V" domain={[5,15]}/>
+                        <YAxis domain={[0,20]} allowDataOverflow={true} yAxisId="CTRL" hide={true}/>
                         <XAxis dataKey="xtick"/>
                         <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
                         <Tooltip content={<CustomTooltip/>}/>
@@ -219,13 +222,11 @@ class ChartsView extends Component {
                                 />:null
                         }
                         <Line type="monotone" className="voltageCurve" dataKey="voltage" dot={false}/>
-                        <Bar dataKey='controlState' >
-                        {
-                            props.values.map((entry, index) => (
-                                <Cell key={`cell-${index}`} className={props.values[index].ctrl}/>
-                                ))
-                        }
-                        </Bar>
+                        <Area type="step" dataKey="ctrlOff" yAxisId="CTRL" className="OffArea" dot={false} isAnimationActive={false}/>
+                        <Area type="step" dataKey="ctrlOn" yAxisId="CTRL" className="OnArea" dot={false} isAnimationActive={false}/>
+                        <Area type="step" dataKey="ctrlPre" yAxisId="CTRL" className="PreArea" dot={false} isAnimationActive={false}/>
+                        <Area type="step" dataKey="ctrlError" yAxisId="CTRL" className="ErrorArea" dot={false} isAnimationActive={false}/>
+                        <Area type="step" dataKey="ctrlExtended" yAxisId="CTRL" className="ExtendedArea" dot={false} isAnimationActive={false}/>
                     </ComposedChart>
                   </div>
               }/>

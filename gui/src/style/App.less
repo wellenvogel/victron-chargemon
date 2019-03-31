@@ -278,28 +278,34 @@ button.fab{
   fill:@color;
 }
 
+.areaColor(@color){
+  path:first-child{
+    stroke:@color;
+    fill:@color;
+    fill-opacity: 1;
+  }
+}
 .chartContainer{
   flex:1;
   display: flex;
   flex-direction: column;
-  .WaitFloat{
-    .barColor(@chartWait);
+
+  .OffArea{
+    .areaColor(@chartNeutral);
   }
-  .OnMinTime{
-    .barColor(@chartOn);
+  .OnArea{
+    .areaColor(@chartOn)
   }
-  .OnExtended{
-    .barColor(@chartOn);
+  .ExtendedArea{
+    .areaColor(@chartExtended)
   }
-  .TestOn{
-    .barColor(@chartOn);
+  .PreArea{
+    .areaColor(@chartWait)
   }
-  .Fail{
-    .barColor(@chartError);
+  .ErrorArea{
+    .areaColor(@chartError)
   }
-  .Init{
-    .barColor(@chartNeutral);
-  }
+
   .keepOnVoltage line{
     stroke: @chartOnVoltage;
   }

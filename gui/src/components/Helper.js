@@ -34,6 +34,39 @@ const Helper={
         let minutes=Math.floor(seconds/60);
         seconds=seconds-60*minutes;
         return Helper.formatNumber(hours,2)+":"+Helper.formatNumber(minutes,2)+":"+Helper.formatNumber(seconds,2);
+    },
+    stateToValues: function(state) {
+        let rt = {
+            ctrlOn: 0,
+            ctrlExtended:0,
+            ctrlOff: 1,
+            ctrlPre: 0,
+            ctrlError: 0
+        };
+        const setState = (name)=> {
+            for (let k in rt) {
+                rt[k] = 0;
+            }
+            rt[name] = 1;
+        };
+        switch (state) {
+            case 'OnMinTime':
+                setState('ctrlOn');
+                break;
+            case 'OnExtended':
+                setState('ctrlExtended');
+                break;
+            case 'TestOn':
+                setState('ctrlOn');
+                break;
+            case 'Fail':
+                setState('ctrlError');
+                break;
+            case 'WaitFloat':
+                setState('ctrlPre');
+                break;
+        }
+        return rt;
     }
 };
 

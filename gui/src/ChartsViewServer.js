@@ -2,14 +2,21 @@ import React, { Component } from 'react';
 import ToolBar from './components/ToolBar';
 import Button from 'react-toolbox/lib/button';
 import { RadioGroup, RadioButton } from 'react-toolbox/lib/radio';
-import { ComposedChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Bar, Cell, ReferenceLine } from 'recharts';
+import { Area, ComposedChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Bar, Cell, ReferenceLine } from 'recharts';
 import Measure from 'react-measure';
 import Helper from './components/Helper.js';
+import assign from 'object-assign';
 
 //align with CSS/LESS
 const VOLTAGE_COLOR='#0397ff';
 const VPV_COLOR='#ffb01f';
 const ICOLOR='#08cd59';
+
+const ONCOLOR='#008000';
+const OFFCOLOR='#808080';
+const PRECOLOR='#FFFF00';
+const ERRCOLOR='#FF0000';
+
 
 const BASEURL='/control/';
 const HISTORYURL=BASEURL+'history';
@@ -24,6 +31,8 @@ const DISPLAY_12H=12*3600;
 
 const formatDateToText=Helper.formatDateToText;
 const findFromDataArray=Helper.findFromDataArray;
+
+
 
 class ChartsViewServer extends Component {
 
@@ -131,6 +140,7 @@ class ChartsViewServer extends Component {
             dataItem.controlState = 5.5; //must fit to the domain of the Y axis
             dataItem.ctrl = item['CState'];
             if (dataItem.Connection == 'FAIL') dataItem.ctrl = 'Fail';
+            dataItem=assign(dataItem,Helper.stateToValues(dataItem.ctrl));
             values.push(dataItem);
         }
         let runtime=0;
@@ -241,6 +251,7 @@ class ChartsViewServer extends Component {
                         <YAxis label="V" domain={[5,15]} allowDataOverflow={true} stroke={VOLTAGE_COLOR} width={30}/>
                         <YAxis label="I" domain={[0,20]} allowDataOverflow={true} yAxisId="I" stroke={ICOLOR} width={30}/>
                         <YAxis label="P" domain={[0,300]} allowDataOverflow={true} yAxisId="P" stroke={VPV_COLOR} width={30}/>
+                        <YAxis domain={[0,20]} allowDataOverflow={true} yAxisId="CTRL" hide={true}/>
                         <XAxis dataKey="xtick"/>
                         <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
                         <Tooltip content={<CustomTooltip/>}/>
@@ -260,13 +271,12 @@ class ChartsViewServer extends Component {
                         <Line type="monotone" className="voltageCurve" dataKey="V" stroke={VOLTAGE_COLOR} dot={false} isAnimationActive={false}/>
                         <Line type="monotone" className="vpvCurve" dataKey="PPV" yAxisId="P" stroke={VPV_COLOR} dot={false} isAnimationActive={false}/>
                         <Line type="monotone" className="iCurve" dataKey="I" yAxisId="I" stroke={ICOLOR} dot={false} isAnimationActive={false}/>
-                        <Bar dataKey='controlState' isAnimationActive={false}>
-                        {
-                            props.values.map((entry, index) => (
-                                <Cell key={`cell-${index}`} className={props.values[index].ctrl}/>
-                                ))
-                        }
-                        </Bar>
+                        <Area type="step" dataKey="ctrlOff" yAxisId="CTRL" className="OffArea" dot={false} isAnimationActive={false}/>
+                        <Area type="step" dataKey="ctrlOn" yAxisId="CTRL" className="OnArea" dot={false} isAnimationActive={false}/>
+                        <Area type="step" dataKey="ctrlPre" yAxisId="CTRL" className="PreArea" dot={false} isAnimationActive={false}/>
+                        <Area type="step" dataKey="ctrlError" yAxisId="CTRL" className="ErrorArea" dot={false} isAnimationActive={false}/>
+                        <Area type="step" dataKey="ctrlExtended" yAxisId="CTRL" className="ExtendedArea" dot={false} isAnimationActive={false}/>
+
                     </ComposedChart>
                   </div>
               }/>
