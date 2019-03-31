@@ -1,7 +1,7 @@
 #shut off during extended
 #15 minutes float, Voltage at 13.6
 #900;mppt2-float.log;re.sub("^CS .*","CS 5",line);re.sub("^V .*","V 13600",line);re.sub("1","1",line)
-900;mppt2-float.log;re.sub("^CS .*","CS 5",line);re.sub("^V .*","V 13600",line);re.sub("^I .*","I %d"%(6000+5000*percent/100),line)
+900;mppt2-float.log;re.sub("^CS .*","CS 5",line);re.sub("^V .*","V 13600",line);re.sub("^I .*","I %d"%(6000+5000*percent/100),line);re.sub("^PPV .*","PPV %d"%(100+100*percent/100),line)
 #40 minutes bulk, voltage from 13.6...12.7
 1400;mppt2-float.log;re.sub("^CS .*","CS 3",line);re.sub("^V .*","V %d"%(13600-900*percent/100),line);re.sub("^I .*","I 12000",line)
 #30 minutes bulk, voltage from 12.7...12.2
