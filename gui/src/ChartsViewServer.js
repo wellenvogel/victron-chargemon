@@ -151,6 +151,7 @@ class ChartsViewServer extends Component {
                     <div className="custom-tooltip">
                         <p className="label">{label}</p>
                         <p className="value">{`Voltage: ${data.V} V`}</p>
+                        <p className="value">{`Power: ${data.PPV}W`}</p>
                         <p className="value">{`State: ${data.ctrl}`}</p>
                         <p className="value">{`Charger: ${data.CS}`}</p>
                         <p className="value">{`Current: ${data.I}`}</p>
@@ -184,7 +185,7 @@ class ChartsViewServer extends Component {
                     <ComposedChart barCategoryGap={-1}  height={self.state.height||DEFAULT_HEIGHT} width={self.state.width||DEFAULT_WIDTH} data={props.values}>
                         <YAxis label="V" domain={[5,15]} allowDataOverflow={true} stroke={VOLTAGE_COLOR} width={30}/>
                         <YAxis label="VPV" domain={[5,60]} allowDataOverflow={true} yAxisId="VPV" stroke={VPV_COLOR} width={30}/>
-                        <YAxis label="I" domain={[0,22]} allowDataOverflow={true} yAxisId="I" stroke={ICOLOR} width={20}/>
+                        <YAxis label="P" domain={[0,300]} allowDataOverflow={true} yAxisId="P" stroke={ICOLOR} width={30}/>
                         <XAxis dataKey="xtick"/>
                         <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
                         <Tooltip content={<CustomTooltip/>}/>
@@ -201,10 +202,10 @@ class ChartsViewServer extends Component {
                                 label={{value:"Off: "+self.state.offVoltage+" V",position:'bottom'}}
                                 />:null
                         }
-                        <Line type="monotone" className="voltageCurve" dataKey="V" stroke={VOLTAGE_COLOR} dot={false}/>
-                        <Line type="monotone" className="vpvCurve" dataKey="VPV" yAxisId="VPV" stroke={VPV_COLOR} dot={false}/>
-                        <Line type="monotone" className="iCurve" dataKey="I" yAxisId="I" stroke={ICOLOR} dot={false}/>
-                        <Bar dataKey='controlState' >
+                        <Line type="monotone" className="voltageCurve" dataKey="V" stroke={VOLTAGE_COLOR} dot={false} isAnimationActive={false}/>
+                        <Line type="monotone" className="vpvCurve" dataKey="VPV" yAxisId="VPV" stroke={VPV_COLOR} dot={false} isAnimationActive={false}/>
+                        <Line type="monotone" className="iCurve" dataKey="PPV" yAxisId="P" stroke={ICOLOR} dot={false} isAnimationActive={false}/>
+                        <Bar dataKey='controlState' isAnimationActive={false}>
                         {
                             props.values.map((entry, index) => (
                                 <Cell key={`cell-${index}`} className={props.values[index].ctrl}/>
