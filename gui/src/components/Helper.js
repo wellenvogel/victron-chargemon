@@ -17,6 +17,9 @@ const Helper={
         let dv=Helper.formatDate(date,withDay);
         return dv.day+" "+dv.time;
     },
+    formatDateDay:function(date){
+        return Helper.formatNumber(date.getMonth()+1,2)+"/"+Helper.formatNumber(date.getDate(),2);
+    },
     findFromDataArray:function(data,name,returnValue){
         for (let i in data){
             if (data[i].definition && data[i].definition.name == name){

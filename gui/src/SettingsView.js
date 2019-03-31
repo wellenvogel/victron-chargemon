@@ -192,25 +192,6 @@ class SettingsView extends Component {
     onOkClick(ev){
         let self=this;
         console.log("ok clicked");
-        /*
-        fetch(updateUrl,{
-            credentials: 'same-origin',
-            method: 'post',
-            body: data
-
-        }).then(function(response){
-            if (! response.ok){
-                alert("Error: "+response.statusText);
-                throw new Error(response.statusText)
-            }
-            return response.json()
-        }).then(function(jsonData){
-            if (! jsonData.STATUS || jsonData.STATUS != "OK"){
-                alert("Error: update failed "+jsonData.INFO);
-            }
-            self.goBack();
-        })
-        */
         self.goBack();
     }
 }

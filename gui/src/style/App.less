@@ -165,6 +165,23 @@ button.fab{
   .toolbarButton("icons/refresh.svg");
 }
 
+.displayInterval{
+  button:disabled{
+    opacity: 0.3;
+  }
+  .previousDay{
+    .toolbarButton("icons/chevron_left.svg");
+    background-position-x: center;
+  }
+  .nextDay{
+    .toolbarButton("icons/chevron_right.svg");
+    background-position-x: center;
+  }
+  .currentDate{
+    line-height: 36px; /*align to buttons */
+  }
+}
+
 .buttonFrame(){
   width: 33%;
   padding: 0.3em;
