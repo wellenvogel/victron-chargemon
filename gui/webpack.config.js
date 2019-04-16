@@ -142,8 +142,8 @@ module.exports = function(env) {
         devServer:{
             proxy: {
                 '/control':{
-                    target: 'http://localhost:8082/',
-                    //target: 'http://10.222.10.55:8081/',
+                    //target: 'http://localhost:8082/',
+                    target: 'http://10.222.10.103:8081/',
                     secure: false
                 }
             }
