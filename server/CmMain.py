@@ -21,7 +21,7 @@ import getopt
 class CmMain:
   def __init__(self,argv):
     try:
-      opts,args=getopt.getopt(argv[1:],'p:b:dl:g:h:')
+      opts,args=getopt.getopt(argv[1:],'p:b:d:l:g:h:')
     except getopt.GetoptError as err:
       print str(err)
       self.usage()
@@ -30,15 +30,15 @@ class CmMain:
     baud=19200
     logdir="."
     guibase="gui"
-    self.query=0
     self.historyInterval=0
+    self.logInterval=0
     for o, a in opts:
       if o == '-p':
         port=int(a)
       if o == '-b':
         baud=int(a)
       if o == '-d':
-        self.query=1
+        self.historyInterval=int(a)
       if o == '-l':
         logdir=os.path.expanduser(a)
         if not os.path.exists(logdir):
@@ -112,6 +112,7 @@ class CmMain:
     serverThread.setName("HTTPServer")
     serverThread.start()
     lastHistory=0
+    lastLog=0
     count=-1
     while True:
       self.serial = None
@@ -134,16 +135,21 @@ class CmMain:
       while self.serial.isOpen():
         count += 1
         shouldWriteHistory=self.localHistory is not None and (time.time() >= (lastHistory+self.historyInterval))
-        if (self.query != 0) or shouldWriteHistory:
+        shouldDoLog=self.logInterval != 0 and (time.time() >= (lastLog + self.logInterval))
+        if shouldDoLog or shouldWriteHistory:
           self.statusStore.reset()
           try:
-            lastHistory = time.time()
+            if shouldWriteHistory:
+              lastHistory = time.time()
+            if shouldDoLog:
+              lastLog=time.time()
             sq = self.serial.sendCommand('status', store=self.statusStore)
             self.serial.waitForCommand(sq)
-            self.logger.info("Serial State=%d"%(self.serial.state))
-            for st in CmDefines.STATUS:
-              v=self.statusStore.getItem(st)
-              self.logger.info("#%s=%s%s"%(st.display,v.getValue() if v is not None else '???',st.unit))
+            if shouldDoLog:
+              self.logger.info("Serial State=%d"%(self.serial.state))
+              for st in CmDefines.STATUS:
+                v=self.statusStore.getItem(st)
+                self.logger.info("#%s=%s%s"%(st.display,v.getValue() if v is not None else '???',st.unit))
             if shouldWriteHistory:
               self.localHistory.writeValuesFromState(self.statusStore)
           except:
@@ -151,25 +157,6 @@ class CmMain:
             self.serial.close()
             lastHistory = time.time()
             continue
-          if (count % 20) == 0 and self.serial.isOpen():
-            try:
-              self.historyStore.reset()
-              sq=self.serial.sendCommand('history',store=self.historyStore)
-              self.serial.waitForCommand(sq)
-            except:
-              self.logger.error(traceback.format_exc())
-              self.serial.close()
-              continue
-            self.logger.info("#### HISTORY ###")
-            for h in CmDefines.HISTORY:
-              v=self.historyStore.getItem(h)
-              if v is not None:
-                val=v.getValue()
-                if h.isMulti:
-                  for item in val:
-                    self.logger.info("#%s=%s%s" % (h.display, item,h.unit))
-                else:
-                  self.logger.info( "#%s=%s%s" % (h.display, val,h.unit))
         time.sleep(10)
       time.sleep(5)
 
