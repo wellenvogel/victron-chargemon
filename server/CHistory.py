@@ -27,7 +27,7 @@ class CHistory:
   def getFilename(self,date=None):
     if date is None:
       date=datetime.datetime.now()
-    return os.path.join(self.basedir,unicode('history'+date.strftime("%Y-%m-%d")))
+    return os.path.join(self.basedir,str('history'+date.strftime("%Y-%m-%d")))
 
   def getFileForDay(self,distance=0):
     """
@@ -71,7 +71,7 @@ class CHistory:
       if v is None:
         line.append('')
       else:
-        line.append(unicode(v.replace(",","")))
+        line.append(str(v.replace(",","")))
     self.currentFile.write(",".join(line))
     self.currentFile.write("\n")
     self.currentFile.flush()

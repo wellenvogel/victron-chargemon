@@ -116,7 +116,7 @@ class CmSerial:
       raise Exception("unable to start command - timeout reached")
     self.store=store
     try:
-      self.device.write("%d %s\n"%(mySequence,command.encode('ascii', 'ignore')))
+      self.device.write(("%d %s\n"%(mySequence,command)).encode('ascii', 'ignore'))
     except:
       self.condition.acquire()
       if self.runningSequence == mySequence:

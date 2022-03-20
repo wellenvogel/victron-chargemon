@@ -1,6 +1,6 @@
-import BaseHTTPServer
-import SimpleHTTPServer
-import SocketServer
+import http.server
+import socketserver
+
 import cgi
 import json
 import logging
@@ -8,12 +8,11 @@ import os
 import posixpath
 import re
 import traceback
-import urllib
-import urlparse
+import urllib.parse
 
 import Constants
 
-class HTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
+class HTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
 
   def __init__(self, RequestHandlerClass,port,controller,basedir):
     self.basedir =basedir
@@ -22,7 +21,7 @@ class HTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
       '.js': 'text/javascript; charset=utf-8'
     })
     self.controller=controller
-    BaseHTTPServer.HTTPServer.__init__(self, ("0.0.0.0",port), RequestHandlerClass, True)
+    http.server.HTTPServer.__init__(self, ("0.0.0.0",port), RequestHandlerClass, True)
 
   def getUrlPath(self, path):
     '''
@@ -36,7 +35,7 @@ class HTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
 
 
 
-class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
+class HTTPHandler(http.server.SimpleHTTPRequestHandler):
   CONTROLURL="/control"
   def __init__(self, request, client_address, server):
     self.logger=logging.getLogger(Constants.LOGNAME)
@@ -45,7 +44,7 @@ class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     self.wbufsize = -1
     self.id = None
     self.logger.debug("receiver thread started", client_address)
-    SimpleHTTPServer.SimpleHTTPRequestHandler.__init__(self, request, client_address, server)
+    http.server.SimpleHTTPRequestHandler.__init__(self, request, client_address, server)
 
   def do_POST(self):
     self.send_error(404, "unsupported post url")
@@ -106,8 +105,8 @@ class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     self.end_headers()
     return f
   def isForwarded(self):
-    fh=self.headers.getheaders("x-forwarded-for")
-    if fh is None or len(fh) == 0:
+    fh=self.headers.get("x-forwarded-for")
+    if fh is None:
       return False
     return True
   # overwrite this from SimpleHTTPRequestHandler
@@ -122,9 +121,9 @@ class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     # abandon query parameters
     (path, sep, query) = path.partition('?')
     path = path.split('#', 1)[0]
-    path = posixpath.normpath(urllib.unquote(path).decode('utf-8'))
+    path = posixpath.normpath(urllib.parse.unquote(path))
     if path.startswith(self.CONTROLURL):
-      requestParam = urlparse.parse_qs(query, True)
+      requestParam = urllib.parse.parse_qs(query, True)
       self.handleControlRequest(path, requestParam)
       return None
     if path == "" or path == "/":
@@ -170,7 +169,7 @@ class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
       self.send_header("Content-Length", str(len(rtj)))
       self.send_header("Last-Modified", self.date_time_string())
       self.end_headers()
-      self.wfile.write(rtj)
+      self.wfile.write(rtj.encode('utf-8'))
       self.logger.debug("nav response", rtj)
     else:
       raise Exception("empty response")
@@ -187,11 +186,11 @@ class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
       rtj=self.server.controller.handleRequest(path[len(self.CONTROLURL+"/"):],requestParam)
       self.sendJsonResponse(json.dumps(rtj), requestParam)
     except Exception as e:
-      text = e.message + "\n" + traceback.format_exc()
+      text =str(e) + "\n" + traceback.format_exc()
       self.logger.debug("unable to process request for controlrequest ", text)
       self.sendJsonResponse(json.dumps({
         "status":"ERROR",
-        "info":e.message,
+        "info":str(e),
         "detail":text
       }),requestParam)
       return

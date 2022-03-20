@@ -100,8 +100,8 @@ ospackage {
     os = LINUX // only applied to RPM
     packageGroup='misc'
     packageName='chargemon-gui'
-    requires 'python-pyudev'
-    requires 'python-serial'
+    requires 'python3-pyudev'
+    requires 'python3-serial'
     user='root'
     into ('/usr/lib/chargemon') {
         from('gui/build/release') {

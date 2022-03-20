@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 import datetime
 import sys
 
@@ -23,7 +23,7 @@ class CmMain:
     try:
       opts,args=getopt.getopt(argv[1:],'p:b:d:l:g:h:')
     except getopt.GetoptError as err:
-      print str(err)
+      print(str(err))
       self.usage()
       raise Exception
     port=8080
@@ -42,7 +42,7 @@ class CmMain:
       if o == '-l':
         logdir=os.path.expanduser(a)
         if not os.path.exists(logdir):
-          print "trying to create logdir %s"%(logdir)
+          print("trying to create logdir %s"%(logdir))
           os.makedirs(logdir)
       if o == '-h':
         self.historyInterval=int(a)
@@ -68,16 +68,18 @@ class CmMain:
     self.logger.info("####cmserver started, port=%s,baud=%d####",self.serialPort,baud)
     self.logger.info("basedir=%s",self.guibase)
     if self.historyInterval > 0:
-      self.localHistory=CHistory(logdir,self.historyInterval,map(lambda v: v.name, CmDefines.STATUS))
+      self.localHistory=CHistory(logdir,self.historyInterval,list(map(lambda v: v.name, CmDefines.STATUS)))
+    else:
+      self.localHistory=None  
   def usage(self):
-    print "usage: XXX [-p port] [-b baud] [-d] [-l logdir] [-g basedir] [-h historyInterval] serialDevice"
-    print "           -p - port for webserver"
-    print "           -b baudrate, default 19200"
-    print "           -d do queries to log"
-    print "           -h history in seconds"
-    print "           -l basedir for logging, e.g. ~/.chargemon"
-    print "           -g guibase the basedir for the static files to be served"
-    print "           serialDevice either path or usb:<usbid>"
+    print("usage: XXX [-p port] [-b baud] [-d] [-l logdir] [-g basedir] [-h historyInterval] serialDevice")
+    print("           -p - port for webserver")
+    print("           -b baudrate, default 19200")
+    print("           -d do queries to log")
+    print("           -h history in seconds")
+    print("           -l basedir for logging, e.g. ~/.chargemon")
+    print("           -g guibase the basedir for the static files to be served")
+    print("           serialDevice either path or usb:<usbid>")
 
   def usbIdFromPath(self,path):
     rt=re.sub('/ttyUSB.*','',path).split('/')[-1]
@@ -99,7 +101,7 @@ class CmMain:
           return port
         allDevices.append((usbid,dev.device_node))
       self.logger.warn("usb device %s not found"%port)
-      self.logger.warn("available devices: %s"%",".join(map(lambda x: "/".join(x),allDevices)))
+      self.logger.warn("available devices: %s"%",".join(list(map(lambda x: "/".join(x),allDevices))))
       if doRaise:
         raise Exception("usb device %s not found "%port)
       return None

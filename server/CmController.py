@@ -11,7 +11,7 @@ class CmController:
     if rt is None:
       return None
     if isinstance(rt, list):
-      return rt[0].decode('utf-8', errors='ignore')
+      return rt[0]
     return rt
   def getMandatoryParam(self,param,name):
     rt=self.getHttpRequestParam(param,name)
