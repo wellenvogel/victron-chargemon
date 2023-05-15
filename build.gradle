@@ -107,6 +107,9 @@ ospackage {
         from('gui/build/release') {
             into 'gui'
         }
+        from('plugin'){
+            into '/usr/lib/avnav/plugins/chargemon'
+        }
         from('server') {
             include "*.py"
             into "server"
