@@ -1,10 +1,11 @@
 class Item:
-  def __init__(self,name,display,unit='',factor=None):
+  def __init__(self,name,display,unit='',factor=None,fract=None):
     self.name=name
     self.display=display
     self.unit=unit
     self.factor=factor
     self.isMulti=False
+    self.fract=fract
   def isHistory(self):
     return False
   def toResponse(self):
@@ -29,10 +30,10 @@ class CmDefines:
   STATUS=[
     Item('Connection','Connection'),
     Item('Time','Time since Start','s'),
-    Item('V','Battery Voltage','V',factor=0.001),
-    Item('VPV','Panel Voltage','V',factor=0.001),
-    Item('PPV','Panel Power','W'),
-    Item('I','Charge Current','A',factor=0.001),
+    Item('V','Battery Voltage','V',factor=0.001,fract=3),
+    Item('VPV','Panel Voltage','V',factor=0.001,fract=3),
+    Item('PPV','Panel Power','W',fract=2),
+    Item('I','Charge Current','A',factor=0.001,fract=3),
     Item('CS','Charger State'),
     Item('CState','Controller State'),
     Item('CTime','Time in State','s'),

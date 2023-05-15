@@ -1,7 +1,11 @@
+import time
+QUERY_INTERVAL=5
 class CmController:
   def __init__(self,serial,history=None):
     self.serial=serial
     self.history=history
+    self.lastState=None
+    self.lastStateQuery=None
 
   def setSerial(self,serial):
     self.serial=serial
@@ -43,7 +47,18 @@ class CmController:
       }
     if path == "command":
       cmd=self.getMandatoryParam(param,'cmd')
-      store=self.serial.sendCommandAndWait(cmd)
+      store=None
+      if cmd == 'state':
+        now=time.monotonic()
+        if self.lastState is not None and self.lastStateQuery is not None:
+          if now < (self.lastStateQuery + QUERY_INTERVAL):
+            store=self.lastState
+        if store is None:
+          self.lastStateQuery=now
+      if store is None:
+        store=self.serial.sendCommandAndWait(cmd)
+        if cmd == 'state':
+          self.lastState=store
       items=store.getAll()
       rt={'status':store.result}
       if store.error is not None:

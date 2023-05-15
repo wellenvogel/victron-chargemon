@@ -9,13 +9,21 @@ class CmReceivedItem:
     self.value=value
     self.timestamp=time.time()
 
+  def __valueFract(self,v):
+    if v is None or v == '##':
+      return v
+    if self.definition.fract is None:
+      return str(v)
+    v=float(v)
+    return ("%."+str(self.definition.fract)+"f")%v
+
   def getValue(self):
     if self.definition.factor is None:
-      return self.value
+      return self.__valueFract(self.value)
     try:
       v=float(self.value)
       v=v*self.definition.factor
-      return str(v)
+      return self.__valueFract(v)
     except:
       return self.value
   def toResponse(self):
