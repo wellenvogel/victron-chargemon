@@ -4,6 +4,7 @@
 #include "Receiver.h"
 #include "Callback.h"
 #include "TimeBase.h"
+#include "Settings.h"
 
 static int debug=0;
 static char* stateNames[]={
@@ -171,42 +172,43 @@ class VictronReceiver : public Callback{
   }
   void writeStatus(Receiver *out,int num=0){
     long current=TimeBase::timeSeconds();
+    int demo=Settings::getCurrentValue(SETTINGS_DEMO);
     out->writeNumberPrefix(num);
-    if ((info.lastVoltage+(MAX_AGE<<TimeBase::getDebugSpeedUp())) >= current){
+    if (((info.lastVoltage+(MAX_AGE<<TimeBase::getDebugSpeedUp())) >= current) || demo){
       out->sendSerial("V=");
-      out->sendSerial(info.voltage,true); 
+      out->sendSerial(demo?random(12000):info.voltage,true); 
     }
     else{
       out->sendSerial("V=##",true);
     }
     out->writeNumberPrefix(num);
-    if ((info.lastPvoltage+(MAX_AGE<<TimeBase::getDebugSpeedUp())) >= current){
+    if (((info.lastPvoltage+(MAX_AGE<<TimeBase::getDebugSpeedUp())) >= current) || demo){
       out->sendSerial("VPV=");
-      out->sendSerial(info.pVoltage,true); 
+      out->sendSerial(demo?random(36000):info.pVoltage,true); 
     }
     else{
       out->sendSerial("VPV=##",true);
     }
     out->writeNumberPrefix(num);
-    if ((info.lastPpower+(MAX_AGE<<TimeBase::getDebugSpeedUp())) >= current){
+    if (((info.lastPpower+(MAX_AGE<<TimeBase::getDebugSpeedUp())) >= current)|| demo){
       out->sendSerial("PPV=");
-      out->sendSerial(info.pPower,true); 
+      out->sendSerial(demo?random(90):info.pPower,true); 
     }
     else{
       out->sendSerial("PPV=##",true);
     }
     out->writeNumberPrefix(num);
-    if ((info.lastBcurrent+(MAX_AGE<<TimeBase::getDebugSpeedUp())) >= current){
+    if (((info.lastBcurrent+(MAX_AGE<<TimeBase::getDebugSpeedUp())) >= current)||demo){
       out->sendSerial("I=");
-      out->sendSerial(info.bCurrent,true); 
+      out->sendSerial(demo?random(20000):info.bCurrent,true); 
     }
     else{
       out->sendSerial("I=##",true);
     }
     out->writeNumberPrefix(num);
-    if ((info.lastState+(MAX_AGE<<TimeBase::getDebugSpeedUp())) >= current){
+    if (((info.lastState+(MAX_AGE<<TimeBase::getDebugSpeedUp())) >= current)||demo){
       out->sendSerial("CS=");
-      out->sendSerial(stateToName(info.state),true); 
+      out->sendSerial(demo?"Demo":stateToName(info.state),true); 
     }
     else{
       out->sendSerial("CS=##",true);
