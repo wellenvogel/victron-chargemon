@@ -46,6 +46,12 @@ class Plugin(object):
     'default': 'YX',
     'type': 'STRING'
   }
+  CONFIG_XDR={
+    'name':'sendXDR',
+    'description': 'send XDR records',
+    'default':True,
+    'type':'BOOLEAN'
+  }
 
   def __init__(self,api):
     """
@@ -56,7 +62,7 @@ class Plugin(object):
         @type  api: AVNApi
     """
     self.api = api # type: AVNApi
-    self.api.registerEditableParameters([self.CONFIG_HOST,self.CONFIG_PORT, self.CONFIG_INTERVAL, self.CONFIG_TALKER],self.changeConfig)
+    self.api.registerEditableParameters([self.CONFIG_HOST,self.CONFIG_PORT, self.CONFIG_INTERVAL,self.CONFIG_XDR, self.CONFIG_TALKER],self.changeConfig)
     self.api.registerRestart(self.stop)
     self.changeSequence=0
     self.prefix='HC'
@@ -80,6 +86,8 @@ class Plugin(object):
     return definition.get('name')
   
   def __addXdr(self,record,type,value,unit,name):
+    if value == '##':
+      return record
     rt=record if record is not None else '$%sXDR'%self.prefix
     rt+=',%s,%s,%s,%s'%(type,value,unit,name)
     return rt
@@ -141,21 +149,24 @@ class Plugin(object):
           raise Exception("empty response")
         data=json.loads(response.read())
         if data.get('status') != 'OK':
-          raise Exception('status:%s',data.get('status') or '')
+          info=data.get('info') or ''
+          raise Exception('status:%s %s'%(data.get('status') or '',info))
         count+=1
         self.api.setStatus("NMEA","(%d) %s"%(count,time.strftime("%Y/%m/%d %H:%M:%S",time.localtime())))
-        record=None
-        for item in data.get('data'):
-          if self.__getName(item) == 'V':
-            record=self.__addXdr(record,'U',item.get('value'),'V','BatteryVolt')
-          if self.__getName(item) == 'VPV':
-            record=self.__addXdr(record,'U',item.get('value'),'V','PanelVolt')
-          if self.__getName(item) == 'I':
-            record=self.__addXdr(record,'I',item.get('value'),'A','ChargeCurrent')
-          if self.__getName(item) == 'PPV':
-            record=self.__addXdr(record,'G',item.get('value'),'W','PanelPower')
-        if record is not None:
-          self.api.addNMEA( record,addCheckSum=True,omitDecode=False)
+        doSend=self.__getConfig(self.CONFIG_XDR)
+        if str(doSend).upper() == 'TRUE':
+          record=None
+          for item in data.get('data'):
+            if self.__getName(item) == 'V':
+              record=self.__addXdr(record,'U',item.get('value'),'V','BatteryVolt')
+            if self.__getName(item) == 'VPV':
+              record=self.__addXdr(record,'U',item.get('value'),'V','PanelVolt')
+            if self.__getName(item) == 'I':
+              record=self.__addXdr(record,'I',item.get('value'),'A','ChargeCurrent')
+            if self.__getName(item) == 'PPV':
+              record=self.__addXdr(record,'G',item.get('value'),'W','PanelPower')
+          if record is not None:
+            self.api.addNMEA( record,addCheckSum=True,omitDecode=False)
       except Exception as e:
         count=0
         self.api.setStatus("ERROR","unable to fetch %s: %s"%(queryUrl,str(e)))
