@@ -15,7 +15,8 @@ const SETTINGS=[
     "HistorySize",
     "HistoryInterval",
     "TestOnTime",
-    "DebugTimeShift"
+    "DebugTimeShift",
+    "Demo"
 ];
 
 const buildSetSelect=function(){

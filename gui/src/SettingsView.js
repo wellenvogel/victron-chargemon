@@ -18,6 +18,8 @@ const COMMANDS={
     teston: 'teston',
     testoff: 'testoff',
     "set enabled 1": 'enable',
+    "set demo 1": 'demo on',
+    "set demo 0": 'demo off',
     reset: 'reset'
 };
 

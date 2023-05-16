@@ -25,6 +25,10 @@ const classForValue=function(key,value){
             if (value == 'TestOn') rt='on';
             if (value == 'WaitFloat') rt='waiting';
             break;
+        case('CS'):
+            if (value == 'Demo') rt='fail';
+            break;
+
     }
     return rt;
 };
