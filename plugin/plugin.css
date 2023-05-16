@@ -1,0 +1,20 @@
+.chargerWidget .sub .widgetData {
+    height: 2.3em;
+    padding-top: 0.8em !important;
+}
+.hfield .chargerWidget .sub .widgetData {
+    height: unset;
+    padding-right: 0.3em;
+}
+.chargerWidget .sub {
+    position: relative;
+    flex-grow: 1;
+}
+.hfield .chargerWidget .sub {
+    display: flex;
+    flex-direction: column;
+    justify-content: end;
+}
+.hfield .widget.chargerWidget {
+    padding: 0 !important;
+}
